@@ -1,9 +1,14 @@
 <script>
+import DynamicForm from "@/components/DynamicForm.vue";
 export default {
+  components: {
+    DynamicForm,
+  },
   data() {
     return {
       card: null,
-      jsonData: null,
+      jsonData: {},
+      imageCode: "",
     }
   },
   methods: {
@@ -20,14 +25,41 @@ export default {
       //here send request for card and json and set
       //local vars card and jsonData as response
       this.card = '/static/test.png'
+      this.loadJsonData();
     },
+    // temporary func for testing
+    async loadJsonData() {
+      try {
+        const response = await fetch('/test.json');
+        const data = await response.json();
+
+        this.image_code = data.image_code;
+
+        this.jsonData = this.parseGtParse(data.gt_parse);
+      } catch (error) {
+        console.error("Error loading JSON:", error);
+      }
+    },
+    parseGtParse(data) {
+      // recursive loading data
+      const formattedData = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (typeof value === "object" && value !== null) {
+          formattedData[key] = this.parseGtParse(value);
+        } else {
+          formattedData[key] = value;
+        }
+      }
+      console.log(formattedData);
+      return formattedData;
+    }
   },
   mounted() {
     this.ChangeOrientation()
     this.GetCard()
     window.addEventListener('resize', this.ChangeOrientation)
   },
-  beforeDestroy() {
+  beforeUnmount() {
     window.removeEventListener('resize', this.ChangeOrientation)
   },
 }
@@ -38,48 +70,10 @@ export default {
       <img :src="card" />
     </div>
     <div class="form-wrapper vertical">
-      <span class="input vertical">
-        <p class="caption">IMIE</p>
-        <input type="text" class="text-input" />
-      </span>
-      <span class="input vertical">
-        <p class="caption">NAZWISKO</p>
-        <input type="text" class="text-input" />
-      </span>
-      <span class="input vertical">
-        <p class="caption">Cos tam</p>
-        <input type="text" class="text-input" />
-      </span>
-      <span class="input vertical">
-        <p class="caption">cos tam</p>
-        <input type="text" class="text-input" />
-      </span>
-      <span class="input vertical">
-        <p class="caption">cos tam</p>
-        <input type="text" class="text-input" />
-      </span>
-      <div class="button">WYŚLIJ</div>
+       <form @submit.prevent="handleSubmit" class="form">
+         <DynamicForm :value="jsonData" @update:value="jsonData"/>
+         <div class="button">WYŚLIJ</div>
+       </form>
     </div>
   </div>
 </template>
-<style scoped>
-.wrapper {
-  padding-top: 20px;
-}
-.card-wrapper {
-  width: 100%;
-  height: 100%;
-}
-img {
-  width: 100%;
-}
-.form-wrapper {
-  width: 100%;
-  height: 100%;
-  overflow: scroll;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 20px;
-}
-</style>

@@ -4,12 +4,12 @@
   font-family: 'Red Hat Display', sans-serif;
   font-weight: 400;
   width: 100%;
+  padding: 20px 20px;
   height: calc(100% - 60px);
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-  padding-top: 20px;
 }
 .vertical {
   flex-direction: column;
@@ -39,8 +39,9 @@
 }
 .button {
   background-color: #d13439;
-  padding: 30px;
-  font-size: 30px;
+  margin: 20px;
+  padding: 10px;
+  font-size: 25px;
   border-radius: 20px;
   box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
   color: #dbdbdb;
@@ -48,6 +49,62 @@
   cursor: pointer;
   text-align: center;
 }
+
+.input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.text-input {
+  width: 100%;
+  height: 40px;
+  font-family: 'Red Hat Display', sans-serif;
+  background-color: #ededed;
+  border: 2px solid black;
+  border-radius: 10px;
+  font-size: 20px;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.form {
+  width: 80%;
+}
+
+.inputs-row {
+  display: block;
+}
+
+.caption {
+  margin-top: 5px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+}
+
+.wrapper {
+  padding-top: 20px;
+}
+.card-wrapper {
+  width: 100%;
+  height: auto;
+}
+img {
+  width: 100%;
+}
+.form-wrapper {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: auto;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
 @media (min-width: 1024px) {
   .text-block {
     width: 25%;
@@ -60,28 +117,14 @@
     font-size: 18px;
   }
   .button {
-    font-size: 30px;
+    font-size: 35px;
   }
-}
-.input {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 20px;
-  width: 100%;
-}
-.text-input {
-  width: 80%;
-  height: 50px;
-  font-family: 'Red Hat Display', sans-serif;
-  background-color: #ededed;
-  border: 2px solid black;
-  border-radius: 20px;
-  font-size: 25px;
-  box-sizing: border-box;
-  padding: 10px;
-}
-.caption {
-  font-family: 'Bebas Neue', sans-serif;
-  font-size: 20px;
+  .inputs-row {
+    display: flex;
+    gap: 10px;
+  }
+  .caption {
+    font-size: 25px;
+    margin-top: 10px;
+  }
 }
