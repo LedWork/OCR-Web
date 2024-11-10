@@ -1,35 +1,87 @@
-@import './base.css';
+@import './font.css';
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  font-weight: normal;
+.wrapper {
+  font-family: 'Red Hat Display', sans-serif;
+  font-weight: 400;
+  width: 100%;
+  height: calc(100% - 60px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding-top: 20px;
 }
-
-a,
-.green {
-  text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+.vertical {
+  flex-direction: column;
 }
-
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+.horizontal {
+  flex-direction: row;
 }
-
+.text-block {
+  width: 60%;
+  aspect-ratio: 1/1;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  background-color: #dbdbdb;
+  border-radius: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+.title {
+  font-size: 30px;
+  margin-bottom: 30px;
+}
+.content {
+  font-size: 20px;
+}
+.button {
+  background-color: #d13439;
+  padding: 30px;
+  font-size: 30px;
+  border-radius: 20px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  color: #dbdbdb;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
 @media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
+  .text-block {
+    width: 25%;
+    padding: 30px;
   }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+  .title {
+    font-size: 25px;
   }
+  .content {
+    font-size: 18px;
+  }
+  .button {
+    font-size: 30px;
+  }
+}
+.input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+.text-input {
+  width: 80%;
+  height: 50px;
+  font-family: 'Red Hat Display', sans-serif;
+  background-color: #ededed;
+  border: 2px solid black;
+  border-radius: 20px;
+  font-size: 25px;
+  box-sizing: border-box;
+  padding: 10px;
+}
+.caption {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
 }
