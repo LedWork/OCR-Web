@@ -2,13 +2,20 @@
 import DynamicForm from "@/components/DynamicForm.vue";
 export default {
   components: {
-    DynamicForm,
+    DynamicForm
   },
   data() {
     return {
       card: null,
       jsonData: {},
       imageCode: "",
+      translations: {
+        'Surname': 'Nazwisko',
+        'Name': 'Imię',
+        'Date of birth': 'Data urodzenia',
+        'Date': 'Data',
+        'Donated blood': 'Ilość oddanej krwi'
+      }
     }
   },
   methods: {
@@ -44,15 +51,16 @@ export default {
       // recursive loading data
       const formattedData = {};
       for (const [key, value] of Object.entries(data)) {
+        const tKey = this.translations[key] || key;
+
         if (typeof value === "object" && value !== null) {
-          formattedData[key] = this.parseGtParse(value);
+          formattedData[tKey] = this.parseGtParse(value);
         } else {
-          formattedData[key] = value;
+          formattedData[tKey] = value;
         }
       }
-      console.log(formattedData);
       return formattedData;
-    }
+    },
   },
   mounted() {
     this.ChangeOrientation()
