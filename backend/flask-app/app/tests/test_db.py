@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, MagicMock
-from app.core.db import get_db
+from core.db import get_db
 
 
 class TestDBConfig(unittest.TestCase):
@@ -13,7 +13,7 @@ class TestDBConfig(unittest.TestCase):
             "MONGO_PASS": "pass",
         }.get(key, default)
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_get_db_with_default_values(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = self.mock_getenv_side_effect
@@ -28,7 +28,7 @@ class TestDBConfig(unittest.TestCase):
         )
         self.assertEqual(db, mock_client["animal_db"])
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_get_db_with_custom_values(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = lambda key, default=None: {
@@ -48,13 +48,13 @@ class TestDBConfig(unittest.TestCase):
         )
         self.assertEqual(db, mock_client["animal_db"])
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     def test_get_db_no_connection(self, mock_mongo_client):
         mock_mongo_client.side_effect = Exception("Database connection failed")
         with self.assertRaises(Exception):
             get_db()
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_insert_data(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = self.mock_getenv_side_effect
@@ -71,7 +71,7 @@ class TestDBConfig(unittest.TestCase):
         collection.insert_one.assert_called_with({"name": "Lion", "type": "Wild"})
         self.assertEqual(inserted_data, {"inserted_id": "123456"})
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_retrieve_data(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = self.mock_getenv_side_effect
@@ -88,7 +88,7 @@ class TestDBConfig(unittest.TestCase):
         collection.find_one.assert_called_with({"name": "Lion"})
         self.assertEqual(retrieved_data, {"name": "Lion", "type": "Wild"})
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_retrieve_data_not_found(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = self.mock_getenv_side_effect
@@ -105,7 +105,7 @@ class TestDBConfig(unittest.TestCase):
         collection.find_one.assert_called_with({"name": "Tiger"})
         self.assertIsNone(retrieved_data)
 
-    @patch("app.core.db.MongoClient")
+    @patch("core.db.MongoClient")
     @patch("os.getenv")
     def test_insert_data_error(self, mock_getenv, mock_mongo_client):
         mock_getenv.side_effect = self.mock_getenv_side_effect
