@@ -36,3 +36,14 @@ def load_card_to_db(json_data):
     except Exception as e:
         print(f"An error occurred: {e}")
         return {"error": f"An error occurred: {str(e)}"}, 500
+
+
+def get_correct_cards():
+    db = get_db()
+    collection = db['cards']
+    try:
+        correct_cards = collection.find({"correct": True})
+        return list(correct_cards)
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return {"error": f"An error occurred: {str(e)}"}
