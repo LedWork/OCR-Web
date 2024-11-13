@@ -2,8 +2,8 @@ import random
 
 from flask import jsonify, request, Blueprint
 
-from core.db import get_db
-from core.mark_data import mark_correct
+from app.core.db import get_db
+from app.core.mark_data import mark_correct
 
 card_bp = Blueprint('card', __name__)
 
