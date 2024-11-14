@@ -1,6 +1,7 @@
-import os
 from pymongo import MongoClient
+import os
 import json
+import base64
 
 from app.core.mark_data import mark_incorrect
 
@@ -37,6 +38,26 @@ def load_card_to_db(json_data):
         print(f"An error occurred: {e}")
         return {"error": f"An error occurred: {str(e)}"}, 500
 
+def load_image_to_db(file, image_code):
+    db = get_db()
+    collection = db['images']
+
+    try:
+        existing_image = collection.find_one({"_id": image_code})
+
+        if existing_image:
+            print(f"Image with _id {image_code} already exists. Skipping insertion.")
+            return {"error": f"Image with the same _id already exists: {image_code}"}, 400
+
+        file_content = file.read()
+        photo_data = base64.b64encode(file_content).decode('utf-8')
+
+        collection.insert_one({ "_id": image_code,"photo": photo_data})
+
+        return {"message": "Photo successfully uploaded and linked to the card"}, 200
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return {"error": f"An error occurred: {str(e)}"}, 500
 
 def get_correct_cards():
     db = get_db()

@@ -1,6 +1,8 @@
 from flask import Flask
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 from app.admin.views import admin_bp
 from app.card.views import card_bp
