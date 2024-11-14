@@ -1,5 +1,6 @@
 <script>
 import DynamicForm from "@/components/DynamicForm.vue";
+import axios from 'axios';
 export default {
   components: {
     DynamicForm
@@ -28,39 +29,72 @@ export default {
         document.querySelector('.wrapper').classList.add('vertical')
       }
     },
-    GetCard() {
+    async GetCard() {
       //here send request for card and json and set
       //local vars card and jsonData as response
-      this.card = '/static/test.png'
-      this.loadJsonData();
+      try {
+        const response = await axios.get('http://localhost:5000/random-card');
+        await this.loadJsonData(response.data);
+        await this.loadImage()
+      }
+      catch (error) {
+        console.log(error);
+      }
     },
     // temporary func for testing
-    async loadJsonData() {
+    async loadJsonData(data) {
       try {
-        const response = await fetch('/test.json');
-        const data = await response.json();
-
         this.image_code = data.image_code;
-
         this.jsonData = this.parseGtParse(data.gt_parse);
       } catch (error) {
         console.error("Error loading JSON:", error);
       }
     },
+    async loadImage() {
+      try {
+        const response = await axios.get(`http://localhost:5000/photo/${this.image_code}`);
+
+        if (response.data.photo) {
+          this.card = `data:image/jpeg;base64,${response.data.photo}`;
+        } else {
+          console.error('No image found in the response');
+        }
+      } catch (error) {
+        console.error('Error loading image:', error);
+      }
+    },
     parseGtParse(data) {
-      // recursive loading data
+      const fieldOrder1 = ['Nazwisko', 'Imię', 'Data urodzenia', 'V st.', 'IV st.', 'III st.', 'II st.', 'I st.'];
+      const fieldOrder2 = ['Nr', 'Data', 'ZR', 'Ilość oddanej krwi'];
+
       const formattedData = {};
+
       for (const [key, value] of Object.entries(data)) {
         const tKey = this.translations[key] || key;
 
         if (typeof value === "object" && value !== null) {
-          formattedData[tKey] = this.parseGtParse(value);
+          formattedData[tKey] = this.parseGtParse(value, fieldOrder2);
         } else {
           formattedData[tKey] = value;
         }
       }
-      return formattedData;
-    },
+
+      const reorderFields = (data, order) => {
+        const ordered = {};
+        order.forEach((field) => {
+          if (field in data) {
+            ordered[field] = data[field];
+          }
+        });
+        for (const key in data) {
+          if (!(key in ordered)) {
+            ordered[key] = data[key];
+          }
+        }
+        return ordered;
+      };
+      return reorderFields(formattedData, fieldOrder1);
+    }
   },
   mounted() {
     this.ChangeOrientation()
