@@ -5,7 +5,7 @@ services:
     build:
       context: .
     ports:
-      - "5000:5000"
+      - "5001:5000"
     volumes:
       - ./app:/app
     environment:
@@ -15,7 +15,6 @@ services:
       - MONGO_PASS=pass
     command: >
       sh -c "flask --app . run --debug --host=0.0.0.0"
-      
 
   mongodb:
     image: mongo:6.0
