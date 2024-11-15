@@ -1,6 +1,6 @@
 from flask import request, jsonify, Blueprint
 
-from app.core.db import load_card_to_db
+from app.card.model import load_card_to_db
 
 admin_bp = Blueprint('admin', __name__)
 

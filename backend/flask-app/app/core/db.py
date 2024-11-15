@@ -1,8 +1,5 @@
 import os
 from pymongo import MongoClient
-import json
-
-from app.core.mark_data import mark_incorrect
 
 
 def get_db():
@@ -25,10 +22,12 @@ def load_card_to_db(json_data):
             existing_card = collection.find_one({"_id": json_data.get("_id")})
 
             if existing_card:
-                print(f"Card with _id {json_data.get('_id')} already exists. Skipping insertion.")
-                return {"error": f"Card with the same _id already exists: {json_data.get('_id')}"}, 400
+                print(f"Card with _id {json_data.get('_id')} already "
+                      f"exists. Skipping insertion.")
+                return {"error": f"Card with the same _id already "
+                                 f"exists: {json_data.get('_id')}"}, 400
 
-        mark_incorrect(json_data)
+        mark_unchecked(json_data)
         result = collection.insert_one(json_data)
         print(f"Data inserted with ID: {result.inserted_id}")
 
@@ -38,12 +37,24 @@ def load_card_to_db(json_data):
         return {"error": f"An error occurred: {str(e)}"}, 500
 
 
-def get_correct_cards():
+def get_card_correctness(_id):
     db = get_db()
     collection = db['cards']
-    try:
-        correct_cards = collection.find({"correct": True})
-        return list(correct_cards)
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        return {"error": f"An error occurred: {str(e)}"}
+
+    card = collection.find_one({"_id": _id})
+
+    if not card:
+        return {"error": "Card not found."}
+
+    return int(card["correct"])
+
+
+def mark_checked(data):
+    correct_num = get_card_correctness(data["_id"])
+    data['correct'] = int(correct_num) + 1
+    print(data)
+    print(f"Marked as correct: {data}")
+
+
+def mark_unchecked(data):
+    data['correct'] = 0
