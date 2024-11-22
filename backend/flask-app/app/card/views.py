@@ -5,6 +5,7 @@ from flask import jsonify, request, Blueprint
 
 from app.core.db import get_db
 from app.core.mark_data import mark_correct
+from app.core.utils import parse_json
 
 card_bp = Blueprint('card', __name__)
 
@@ -51,10 +52,11 @@ def send_photo(image_code):
     collection = db['images']
 
     try:
-        image_data = collection.find_one({"_id": image_code})
+        image_data = list(collection.find({"_id": image_code}))
         if not image_data:
-            return jsonify({"error": "No such a card in db"}), 404
+            return jsonify({"error": "No such a card in db"}), 400
 
+        image_data = parse_json(image_data)
         return jsonify(image_data), 200
     except Exception as e:
          print(f"An error occurred: {e}")
