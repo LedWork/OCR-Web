@@ -46,18 +46,3 @@ def send_random_card():
 
     return jsonify(random_card), 200
 
-@card_bp.route('/photo/<image_code>', methods=['GET'])
-def send_photo(image_code):
-    db = get_db()
-    collection = db['images']
-
-    try:
-        image_data = list(collection.find({"_id": image_code}))
-        if not image_data:
-            return jsonify({"error": "No such a card in db"}), 400
-
-        image_data = parse_json(image_data)
-        return jsonify(image_data), 200
-    except Exception as e:
-         print(f"An error occurred: {e}")
-         return jsonify({"error": f"An error occurred: {str(e)}"}), 500
