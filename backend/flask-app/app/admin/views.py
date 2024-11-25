@@ -3,6 +3,7 @@ from flask import request, jsonify, Blueprint
 from app.core.db import load_card_to_db
 from app.image.model import load_image_to_db
 
+
 admin_bp = Blueprint('admin', __name__)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
