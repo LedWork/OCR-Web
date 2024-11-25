@@ -1,17 +1,24 @@
-import os
 from pymongo import MongoClient
+import os
+import json
+import base64
+
+from app.core.mark_data import mark_incorrect
 
 
 def get_db():
     """Return a database connection to MongoDB"""
-    client = MongoClient(
-        host=os.getenv("MONGO_HOST", "localhost"),
-        port=int(os.getenv("MONGO_PORT", 27017)),
-        username=os.getenv("MONGO_USER", "root"),
-        password=os.getenv("MONGO_PASS", "pass"),
-    )
-    db = client["main_db"]
-    return db
+    try:
+        client = MongoClient(
+            host=os.getenv("MONGO_HOST", "localhost"),
+            port=int(os.getenv("MONGO_PORT", 27017)),
+            username=os.getenv("MONGO_USER", "root"),
+            password=os.getenv("MONGO_PASS", "pass"),
+        )
+        db = client["main_db"]
+        return db
+    except Exception as e:
+        raise
 
 
 def load_card_to_db(json_data):

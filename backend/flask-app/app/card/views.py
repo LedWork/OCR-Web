@@ -1,3 +1,7 @@
+
+import base64
+import random
+
 from flask import jsonify, request, Blueprint
 from app.core.utils import parse_json
 from .model import (get_card_by_id,
@@ -5,6 +9,9 @@ from .model import (get_card_by_id,
                     increment_correct,
                     get_random_card)
 
+from app.core.db import get_db
+from app.core.mark_data import mark_correct
+from app.core.utils import parse_json
 
 card_bp = Blueprint('card', __name__)
 
@@ -46,5 +53,5 @@ def send_random_card():
     card = parse_json(card)
     if not card:
         return jsonify({"error": "No cards available in the database."}), 400
-
+      
     return jsonify(card), 200
