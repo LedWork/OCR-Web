@@ -1,6 +1,9 @@
 version: "3.10"
 
 services:
+  web:
+    environment:
+      - SECRET_KEY=SEKRETNY-KLUCZ-0MG
   app:
     build:
       context: .

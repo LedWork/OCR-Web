@@ -1,5 +1,5 @@
 import bcrypt
-from flask import jsonify, request, Blueprint
+from flask import jsonify, request, Blueprint, session
 
 from app.core.db import get_db
 
@@ -19,6 +19,7 @@ def auth_login():
     if user is None:
         return jsonify({"error": "Login or password incorrect."}), 400
     if bcrypt.checkpw(data['password'].encode('utf-8'), user['password']):
+        session['user'] = data['user']
         return jsonify({"Success": "Sucessfully logged in."}), 200
     else:
         return jsonify({"error": "Login or password incorrect."}), 400
