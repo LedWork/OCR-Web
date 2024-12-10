@@ -4,6 +4,7 @@ import InstructionView from '../views/InstructionView.vue'
 import MarkView from '../views/MarkView.vue'
 import ThanksView from '../views/ThanksView.vue'
 import Error404 from '../views/Error404View.vue'
+import AdminPanel from '../views/AdminPanel.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -32,6 +33,11 @@ const router = createRouter({
       path: '/404',
       name: '404',
       component: Error404,
+    },
+    {
+      path: '/admin',
+      name: 'admin',
+      component: AdminPanel,
     },
   ],
 })
