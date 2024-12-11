@@ -45,7 +45,7 @@ def upload_data():
 def add_user():
     data = request.get_json()
     if not data:
-        return jsonify({"error": "No JSON data provided"}), 400
+        return jsonify({"message": "No JSON data provided"}), 400
     try:
         db = get_db()
         collection = db['users']
@@ -54,12 +54,12 @@ def add_user():
         existing_user = collection.find_one({"login": login})
 
         if existing_user:
-            return jsonify({"error": "user with this login already exists"}), 400
+            return jsonify({"message": "user with this login already exists"}), 400
 
         salt = bcrypt.gensalt()
         data['password'] = bcrypt.hashpw(data['password'].encode('utf-8'), salt)
 
         collection.insert_one(data)
-        return {"sucess": "user added sucessfully!"}, 200
+        return {"message": "user added sucessfully!"}, 200
     except Exception as e:
-        return jsonify({"error": f"Faild to add user: {str(e)}"}), 500
+        return jsonify({"message": f"Faild to add user: {str(e)}"}), 500
