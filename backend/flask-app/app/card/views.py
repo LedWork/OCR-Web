@@ -11,12 +11,15 @@ from .model import (get_card_by_id,
 
 from app.core.db import get_db
 from app.core.mark_data import mark_correct
+from app.auth.decorators import login_required
 from app.core.utils import parse_json
 
-card_bp = Blueprint('card', __name__)
+
+card_bp = Blueprint("card", __name__)
 
 
-@card_bp.route('/correct-card', methods=['POST'])
+@card_bp.route("/correct-card", methods=["POST"])
+@login_required
 def receive_correct_card():
     data = request.get_json()
 
@@ -45,9 +48,9 @@ def receive_correct_card():
         return jsonify({"message": "Card marked as correct and updated."}), 200
     else:
         return jsonify({"error": "Error updating card."}), 500
-
-
-@card_bp.route('/random-card', methods=['GET'])
+      
+@card_bp.route("/random-card", methods=["GET"])
+@login_required      
 def send_random_card():
     card = get_random_card()
     card = parse_json(card)
