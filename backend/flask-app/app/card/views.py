@@ -10,7 +10,6 @@ from .model import (get_card_by_id,
                     get_random_card)
 
 from app.core.db import get_db
-from app.core.mark_data import mark_correct
 from app.auth.decorators import login_required
 from app.core.utils import parse_json
 
