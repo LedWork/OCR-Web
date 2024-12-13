@@ -1,24 +1,17 @@
 
-import base64
-import random
-
 from flask import jsonify, request, Blueprint
-from app.core.utils import parse_json
 from .model import (get_card_by_id,
                     update_card,
                     increment_correct,
                     get_random_card)
 
-from app.core.db import get_db
 from app.auth.decorators import login_required
 from app.core.utils import parse_json
-
 
 card_bp = Blueprint("card", __name__)
 
 
 @card_bp.route("/correct-card", methods=["POST"])
-@login_required
 def receive_correct_card():
     data = request.get_json()
 
@@ -47,13 +40,14 @@ def receive_correct_card():
         return jsonify({"message": "Card marked as correct and updated."}), 200
     else:
         return jsonify({"error": "Error updating card."}), 500
-      
+
+
 @card_bp.route("/random-card", methods=["GET"])
-@login_required      
+@login_required
 def send_random_card():
     card = get_random_card()
     card = parse_json(card)
     if not card:
         return jsonify({"error": "No cards available in the database."}), 400
-      
+
     return jsonify(card), 200

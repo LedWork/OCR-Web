@@ -1,24 +1,26 @@
-import bcrypt
 from flask import jsonify, request, Blueprint, session
+from app.auth.models import user_exists, password_correct
 
-from app.core.db import get_db
-
-login_bp = Blueprint('login', __name__)
+auth_bp = Blueprint('auth', __name__)
 
 
-@login_bp.route('/login', methods=['POST'])
+@auth_bp.route('/check-session', methods=['GET'])
+def check_session():
+    if 'user' in session:
+        return jsonify({"message": "OK"}), 200
+    return jsonify({"message": "User not logged in"}), 401
+
+
+@auth_bp.route('/login', methods=['POST'])
 def auth_login():
     data = request.get_json()
     if data is None or 'login' not in data or 'password' not in data:
         return jsonify({"message": "Login or password incorrect."}), 400
 
-    db = get_db()
-    collection = db['users']
-    user = collection.find_one({"login": data['login']})
-
-    if user is None:
+    if user_exists is False:
         return jsonify({"message": "Login or password incorrect."}), 400
-    if bcrypt.checkpw(data['password'].encode('utf-8'), user['password']):
+
+    if password_correct:
         session['user'] = data['login']
         return jsonify({"message": "Sucessfully logged in."}), 200
     else:

@@ -8,7 +8,8 @@ COPY ./requirements.dev.txt /tmp/requirements.dev.txt
 COPY ./app /app
 WORKDIR /app
 
-RUN python -m venv /py && \
+RUN apk add --no-cache musl-dev && \
+    python -m venv /py && \
     pip install --upgrade pip && \
     pip install -r /tmp/requirements.txt && \
     pip install -r /tmp/requirements.dev.txt && \
