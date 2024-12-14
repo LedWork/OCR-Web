@@ -188,7 +188,7 @@ class TestAuthRoutes(unittest.TestCase):
 
     @patch('app.card.model.get_db')
     @patch('app.auth.model.get_db')
-    def test_access_to_restricted_function_logged(self, mock_get_db, mock_get_db2):
+    def test_access_to_restricted_function_logged(self, mock_get_db_auth, mock_get_db_card):
         user = {
             "login": "Jhon",
             "password": "Doe"
@@ -201,17 +201,18 @@ class TestAuthRoutes(unittest.TestCase):
             "login": "Jhon",
             "password": hashed_password
         }
-        mock_collection_cards.find.return_value = [
-            {"_id": "card1", "correct": 1},
-            {"_id": "card2", "correct": 0}
-        ]
+        #in logic of get_random_card function collection.find was changed to collection.find_one
+        #so we are now mocking the find_one.return_value insted of find.return_value
+        mock_collection_cards.find_one.return_value = {
+                "_id": "card1", "correct": 1
+            }
 
         mock_db = {
             'users': mock_collection_users,
             'cards': mock_collection_cards
         }
-        mock_get_db.return_value = mock_db
-        mock_get_db2.return_value = mock_db
+        mock_get_db_auth.return_value = mock_db
+        mock_get_db_card.return_value = mock_db
 
         self.client.post(
             "/auth/login",
