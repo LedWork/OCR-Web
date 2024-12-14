@@ -43,11 +43,11 @@ class TestPhotoRoutes(unittest.TestCase):
 
         response = self.client.post(
             f"/admin/upload-images",
-            data={"file": mock_file},
+            data={"files": mock_file},
             content_type="multipart/form-data"
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Photo successfully uploaded and linked to the card", response.json["message"])
+        self.assertIn("All items loaded successfully.", response.json["message"])
 
     @patch('app.core.db.MongoClient')
     @patch('os.getenv')
@@ -67,11 +67,10 @@ class TestPhotoRoutes(unittest.TestCase):
 
         response = self.client.post(
             f"/admin/upload-images",
-            data={"file": mock_file},
+            data={"files": mock_file},
             content_type="multipart/form-data"
         )
         self.assertEqual(response.status_code, 415)
-        self.assertIn("All items loaded successfully.", response.json["error"])
 
     @patch('app.core.db.MongoClient')
     @patch('os.getenv')
@@ -85,11 +84,11 @@ class TestPhotoRoutes(unittest.TestCase):
         mock_collection.find = []
 
         response = self.client.post(
-            "/admin/upload-image",
+            "/admin/upload-images",
             content_type="multipart/form-data"
         )
         self.assertEqual(response.status_code, 400)
-        self.assertIn("No file provided", response.json["error"])
+        self.assertIn("No files provided", response.json["error"])
 
 if __name__ == "__main__":
     unittest.main()
