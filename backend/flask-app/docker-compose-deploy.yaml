@@ -1,0 +1,42 @@
+version: "3.10"
+
+services:
+  app:
+    build:
+      context: .
+    restart: always
+    volumes:
+      - static-data:/vol/web
+    environment:
+      - DB_HOST=db
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - SECRET_KEY=${SECRET_KEY}
+      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo:6.0
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_USERNAME: ${DB_USER} # TODO look up how to properly set up mongo for production
+      MONGO_INITDB_PASSWORD: ${DB_PASS}
+    ports:
+      - "27017:27017"
+
+  proxy:
+    build:
+      context: ./proxy
+    restart: always
+    depends_on:
+      - app
+    ports:
+      - "80:8000"
+    volumes:
+      - static-data:/vol/static
+
+volumes:
+  mongo-data:
+  static-data:
