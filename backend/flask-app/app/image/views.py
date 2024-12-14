@@ -5,9 +5,7 @@ from .model import get_image
 image_bp = Blueprint('image', __name__)
 
 
-
-
-@image_bp.route('/image/<image_code>', methods=['GET'])
+@image_bp.route('/<image_code>', methods=['GET'])
 def send_photo(image_code):
     try:
 

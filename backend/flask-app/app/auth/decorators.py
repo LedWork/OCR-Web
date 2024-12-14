@@ -1,6 +1,7 @@
 from flask import session, jsonify
 from functools import wraps
 
+
 def login_required(f):
     """
     Decorator to restrict access to endpoints for logged-in users.

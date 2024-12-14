@@ -19,9 +19,11 @@ def mock_getenv_side_effect(key, default=None):
 class TestCardRoutes(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
-        self.app.register_blueprint(card_bp)
-        self.app.register_blueprint(admin_bp)
+        self.app.register_blueprint(card_bp, url_prefix='/card')
+        self.app.register_blueprint(admin_bp, url_prefix='/admin')
         self.client = self.app.test_client()
+        self.app.secret_key = 'test_secret_key'
+        self.app.testing = True
 
     @patch("app.core.db.MongoClient")
     @patch("os.getenv")
@@ -36,7 +38,7 @@ class TestCardRoutes(unittest.TestCase):
         mock_mongo_client.return_value = mock_db
 
         response = self.client.post(
-            "/upload-data",
+            "/admin/upload-data",
             data=json.dumps(personal_card_data),
             content_type='application/json'
         )
@@ -50,7 +52,7 @@ class TestCardRoutes(unittest.TestCase):
         invalid_json = '{"name": "John", "surname": "Doe"'
 
         response = self.client.post(
-            "/upload-data",
+            "/admin/upload-data",
             data=invalid_json,
             content_type='application/json'
         )
@@ -78,7 +80,7 @@ class TestCardRoutes(unittest.TestCase):
         mock_mongo_client.return_value.__getitem__.return_value = mock_db
 
         response = self.client.post(
-            "/correct-card",
+            "/card/correct",
             data=json.dumps({"_id": str(correct_card_data["_id"]), "name": "John", "surname": "Doe"}),
             content_type='application/json'
         )
@@ -95,8 +97,7 @@ class TestCardRoutes(unittest.TestCase):
         mock_mongo_client.return_value = mock_db
         mock_collection.find.return_value = []
 
-        response = self.client.get("/random-card")
-
+        response = self.client.get("/card/random")
         self.assertEqual(response.status_code, 400)
         self.assertIn("No cards available in the database.", response.json["error"])
 
@@ -125,7 +126,7 @@ class TestCardRoutes(unittest.TestCase):
         mock_collection.update_one.return_value = MagicMock(modified_count=1)
 
         response = self.client.post(
-            "/upload-data",
+            "/admin/upload-data",
             data=json.dumps({"name": "John", "surname": "Doe21"}),
             content_type='application/json'
         )
@@ -133,7 +134,7 @@ class TestCardRoutes(unittest.TestCase):
         self.assertIn("Card successfully uploaded.", response.json["message"])
 
         response = self.client.post(
-            "/correct-card",
+            "/card/correct",
             data=json.dumps({"_id": str(card_data["_id"]), "name": "John", "surname": "Doe21"}),
             content_type='application/json'
         )

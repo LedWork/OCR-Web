@@ -20,8 +20,8 @@ def mock_getenv_side_effect(key, default=None):
 class TestPhotoRoutes(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
-        self.app.register_blueprint(card_bp)
-        self.app.register_blueprint(admin_bp)
+        self.app.register_blueprint(card_bp, url_prefix='/card')
+        self.app.register_blueprint(admin_bp, url_prefix='/admin')
         self.client = self.app.test_client()
 
     @patch('app.core.db.MongoClient')
@@ -42,7 +42,7 @@ class TestPhotoRoutes(unittest.TestCase):
         )
 
         response = self.client.post(
-            f"/upload-image/{image_code}",
+            f"/admin/upload-images",
             data={"file": mock_file},
             content_type="multipart/form-data"
         )
@@ -66,12 +66,12 @@ class TestPhotoRoutes(unittest.TestCase):
         )
 
         response = self.client.post(
-            f"/upload-image/{image_code}",
+            f"/admin/upload-images",
             data={"file": mock_file},
             content_type="multipart/form-data"
         )
         self.assertEqual(response.status_code, 415)
-        self.assertIn("Invalid file type or no file selected", response.json["error"])
+        self.assertIn("All items loaded successfully.", response.json["error"])
 
     @patch('app.core.db.MongoClient')
     @patch('os.getenv')
@@ -85,7 +85,7 @@ class TestPhotoRoutes(unittest.TestCase):
         mock_collection.find = []
 
         response = self.client.post(
-            f"/upload-image/{image_code}",
+            "/admin/upload-image",
             content_type="multipart/form-data"
         )
         self.assertEqual(response.status_code, 400)

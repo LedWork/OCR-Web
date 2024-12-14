@@ -3,9 +3,8 @@ sys.path.insert(0, '..')
 import unittest
 from unittest.mock import patch, MagicMock
 from flask import Flask, json
-from app.auth.login import login_bp     #for logging 
 from app.admin.views import admin_bp    #for registering users
-from app.auth.session import session_bp  #for session
+from app.auth.views import auth_bp  #for session
 from app.card.views import card_bp      #to test decorators
 from datetime import datetime, timedelta
 import bcrypt
@@ -13,15 +12,14 @@ import bcrypt
 class TestAuthRoutes(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)
-        self.app.register_blueprint(card_bp)
-        self.app.register_blueprint(admin_bp)
-        self.app.register_blueprint(login_bp)
-        self.app.register_blueprint(session_bp)
+        self.app.register_blueprint(card_bp, url_prefix='/card')
+        self.app.register_blueprint(admin_bp, url_prefix='/admin')
+        self.app.register_blueprint(auth_bp, url_prefix='/auth')
         self.client = self.app.test_client()
         self.app.secret_key = 'test_secret_key'
         self.app.testing = True
 
-    @patch('app.auth.login.get_db')
+    @patch('app.auth.model.get_db')
     def test_login_with_exisitng_data(self, mock_get_db):
         user = {
             "login": "Jhon",
@@ -41,7 +39,7 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         response = self.client.post(
-            "/login",
+            "/auth/login",
             data=json.dumps(user),
             content_type="application/json"
         )
@@ -49,7 +47,7 @@ class TestAuthRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Sucessfully logged in", response.json["message"])
 
-    @patch('app.auth.login.get_db')
+    @patch('app.auth.model.get_db')
     def test_login_with_wrong_password(self, mock_get_db):
         user = {
             "login": "Jhon",
@@ -64,20 +62,20 @@ class TestAuthRoutes(unittest.TestCase):
                 "password": hashed_password
         }
         mock_db = {
-            'users' : mock_collection
+            'users': mock_collection
         }
         mock_get_db.return_value = mock_db
 
         response = self.client.post(
-            "/login",
+            "/auth/login",
             data=json.dumps(user),
             content_type="application/json"
         )
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 401)
         self.assertIn("Login or password incorrect.", response.json["message"])
 
-    @patch('app.auth.login.get_db')
+    @patch('app.auth.model.get_db')
     def test_login_no_data(self, mock_get_db):
         user = {
             "login": "",
@@ -97,15 +95,15 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         response = self.client.post(
-            "/login",
+            "/auth/login",
             data=json.dumps(user),
             content_type="application/json"
         )
 
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, 401)
         self.assertIn("Login or password incorrect.", response.json["message"])
 
-    @patch('app.auth.login.get_db')
+    @patch('app.auth.model.get_db')
     def test_session_exists(self, mock_get_db):
         user = {
             "login": "Jhon",
@@ -125,13 +123,13 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         self.client.post(
-            "/login",
+            "/auth/login",
             data=json.dumps(user),
             content_type="application/json"
         )
 
         response = self.client.get(
-            "/check-session",
+            "/auth/session",
         )
 
         self.assertEqual(response.status_code, 200)
@@ -153,7 +151,7 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         response = self.client.post(
-            "/add-user",
+            "/admin/add-user",
             data=json.dumps(user),
             content_type="application/json"
         )
@@ -180,7 +178,7 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         response = self.client.post(
-            "/add-user",
+            "/admin/add-user",
             data=json.dumps(user),
             content_type="application/json"
         )
@@ -188,8 +186,8 @@ class TestAuthRoutes(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn("user with this login already exists", response.json["message"])
 
-    @patch('app.card.views.get_db')
-    @patch('app.auth.login.get_db')
+    @patch('app.card.model.get_db')
+    @patch('app.auth.model.get_db')
     def test_access_to_restricted_function_logged(self, mock_get_db, mock_get_db2):
         user = {
             "login": "Jhon",
@@ -204,29 +202,30 @@ class TestAuthRoutes(unittest.TestCase):
             "password": hashed_password
         }
         mock_collection_cards.find.return_value = [
-            {"_id": "card1"},
-            {"_id": "card2"}
+            {"_id": "card1", "correct": 1},
+            {"_id": "card2", "correct": 0}
         ]
+
         mock_db = {
-            'users' : mock_collection_users,
-            'cards' : mock_collection_cards
+            'users': mock_collection_users,
+            'cards': mock_collection_cards
         }
         mock_get_db.return_value = mock_db
         mock_get_db2.return_value = mock_db
 
         self.client.post(
-            "/login",
+            "/auth/login",
             data=json.dumps(user),
             content_type="application/json"
         )
 
         response = self.client.get(
-            "/random-card"
+            "/card/random"
         )
 
         self.assertEqual(response.status_code, 200)
 
-    @patch('app.card.views.get_db')
+    @patch('app.card.model.get_db')
     def test_access_to_restricted_function_not_logged(self, mock_get_db):
         mock_collection_cards = MagicMock()
 
@@ -240,7 +239,7 @@ class TestAuthRoutes(unittest.TestCase):
         mock_get_db.return_value = mock_db
 
         response = self.client.get(
-            "/random-card"
+            "/card/random"
         )
 
         self.assertEqual(response.status_code, 401)

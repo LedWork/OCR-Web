@@ -11,7 +11,7 @@ from app.core.utils import parse_json
 card_bp = Blueprint("card", __name__)
 
 
-@card_bp.route("/correct-card", methods=["POST"])
+@card_bp.route("/correct", methods=["POST"])
 def receive_correct_card():
     data = request.get_json()
 
@@ -42,7 +42,7 @@ def receive_correct_card():
         return jsonify({"error": "Error updating card."}), 500
 
 
-@card_bp.route("/random-card", methods=["GET"])
+@card_bp.route("/random", methods=["GET"])
 @login_required
 def send_random_card():
     card = get_random_card()
