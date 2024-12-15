@@ -16,7 +16,7 @@ def load_cards(data):
     if all_success:
         return {"message": "All items loaded successfully."}, 200
     else:
-        return {"message": "Some items failed to load."}, 400
+        return response, status_code
 
 
 def load_card_to_db(json_data):
