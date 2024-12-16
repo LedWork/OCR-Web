@@ -13,10 +13,9 @@ export default {
       if (file) {
         if (file.type === "application/json") {
           this.uploadedFile = file;
-          console.log("Uploaded file", file);
         }
         else {
-          console.error("Please upload a valid JSON file.");
+          alert("Please upload JSON file.");
         }
       }
     },
@@ -28,42 +27,55 @@ export default {
 
       const formData = new FormData();
       formData.append("file", this.uploadedFile);
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const fileContent = reader.result;
+            const data = JSON.parse(fileContent);
 
-      try  {
-        const response = await axios.post(
-          "http://localhost:5000/upload-data",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            }
-          }
-        );
-        console.log("Upload succesful: ", response.data);
-      }
-      catch (error) {
-        console.error("Error: ", error);
-      }
-    },
-    handleImageUpload(event) {
+            const response = await axios.post(
+              "http://localhost:5000/admin/upload-data",
+              data,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                }
+              }
+            );
+            alert("Upload successful.", response.data);
+        } catch (error) {
+          alert("Error during file processing or upload: ", error);
+        }
+      };
+      reader.readAsText(this.uploadedFile);
+    } catch (error) {
+      console.error("Error: ", error);
+    }
+  },
+  handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
         this.uploadedImages = Array.from(files);
-        console.log("Uploaded files", files);
       }
       else {
-        console.error("Please upload valid image files");
+        alert("Please upload valid image files");
       }
     },
     async uploadImages() {
-      if (this.uploadedFiles.length === 0) {
+      if (this.uploadedImages.length === 0) {
         alert("Please upload at least one image file.");
         return;
       }
+      
+      const formData = new FormData();
+      this.uploadedImages.forEach((image) => {
+        formData.append("files", image);
+      });
 
       try {
         const response = await axios.post(
-          "https://localhost:5000/upload-images",
+          "http://localhost:5000/admin/upload-images",
           formData,
           {
             headers: {
@@ -71,11 +83,10 @@ export default {
             },
           }
         );
+        alert("Upload successful.", response.data);
+      } catch (error) {
       }
-      catch (error) {
-        console.error("Error: ", error);
-      }
-    }
+    },
   },
 }
 </script>
@@ -107,7 +118,7 @@ export default {
         Uploading images
       </h1>
       <form @submit.prevent="uploadImages" class="upload-form">
-        <label for="jsonUpload" class="button upload-label">Choose images</label>
+        <label for="imageUpload" class="button upload-label">Choose images</label>
         <input
           id="imageUpload"
           type="file"

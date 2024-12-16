@@ -31,7 +31,7 @@ export default {
     },
     async GetCard() {
       try {
-        const response = await axios.get('https://localhost:5000/random-card');
+        const response = await axios.get('http://localhost:5000/card/random');
         console.log(response.data);
         await this.loadJsonData(response.data);
       }
@@ -49,7 +49,7 @@ export default {
     },
     async loadImage() {
       try {
-        const response = await axios.get(`https://localhost:5000/photo/${this.image_code}`);
+        const response = await axios.get(`http://localhost:5000/image/${this.image_code}`);
 
         if (response.data.photo) {
           this.card = `data:image/jpeg;base64,${response.data.photo}`;
