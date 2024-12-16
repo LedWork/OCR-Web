@@ -1,0 +1,26 @@
+{
+  "image_code": "A (38).jpg",
+  "gt_parse": {
+    "Surname": "Adrych",
+    "Name": "Michał",
+    "Date of birth": "17.08.1987",
+    "PESEL": "01010101011",
+    "III st.": {
+      "Nr": "11284/Gd",
+      "Date": "27.01.12",
+      "ZR": "Kwidzyn",
+      "Donated blood": "6,000"
+    },
+    "II st.": {
+      "Nr": "8567/Gd",
+      "Date": "04.04.17",
+      "ZR": "-//-",
+      "Donated blood": "12,150"
+    }
+  },
+  "meta": {},
+  "valid_line": {},
+  "roi": {},
+  "repeating_symbol": [],
+  "dontcare": []
+}

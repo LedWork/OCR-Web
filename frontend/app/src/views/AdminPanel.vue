@@ -27,7 +27,6 @@ export default {
 
       const formData = new FormData();
       formData.append("file", this.uploadedFile);
-
       try {
         const reader = new FileReader();
         reader.onload = async () => {
@@ -54,7 +53,7 @@ export default {
       console.error("Error: ", error);
     }
   },
-    handleImageUpload(event) {
+  handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
         this.uploadedImages = Array.from(files);
@@ -68,7 +67,7 @@ export default {
         alert("Please upload at least one image file.");
         return;
       }
-
+      
       const formData = new FormData();
       this.uploadedImages.forEach((image) => {
         formData.append("files", image);
