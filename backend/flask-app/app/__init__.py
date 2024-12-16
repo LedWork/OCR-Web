@@ -4,9 +4,11 @@ from flask import Flask, session
 from flask_session import Session
 from datetime import timedelta
 from app.core.db import get_db
+from flask_cors import CORS
 
 app = Flask(__name__)
 db = get_db()
+CORS(app)
 
 app.config['SESSION_TYPE'] = 'mongodb'
 app.config['SECRET_KEY'] = os.environ.get("SECRET_KEY", "SECRET")
