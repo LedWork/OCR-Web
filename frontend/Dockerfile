@@ -2,12 +2,14 @@ FROM node:lts-alpine
 
 WORKDIR /app
 
-RUN npm install -g http-server && \
-    npm install && \
-    npm run build
+COPY app/package.json app/package-lock.json ./
 
-COPY . .
+RUN npm install -g http-server && npm install
+
+COPY ./app ./
+
+RUN npm run build
 
 EXPOSE 8080
-
 CMD ["http-server", "dist"]
+
