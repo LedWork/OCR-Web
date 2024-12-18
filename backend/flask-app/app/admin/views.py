@@ -12,8 +12,9 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 @admin_bp.route('/upload-data', methods=['POST'])
 def upload_data():
-    data = request.get_json()
-    if not data:
+    try:
+        data = request.get_json()
+    except Exception as e:
         return jsonify({"error": "No JSON data provided"}), 400
 
     if not isinstance(data, list):
