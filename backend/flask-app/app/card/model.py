@@ -91,26 +91,30 @@ def update_card(card_id, data):
         return False
 
 
-def increment_correct(card_id):
+def increment_correct(card_id, user_id):
     """Increment the 'correct' field for a card"""
     db = get_db()
     collection = db['cards']
     try:
         collection.update_one({"_id": ObjectId(card_id)},
-                              {"$inc": {"correct": 1}})
+                              {"$inc": {"correct": 1},
+                               "$push": {"checked_by": user_id}})
         return True
     except Exception as e:
         print(f"Error incrementing 'correct' field: {e}")
         return False
 
 
-def get_random_card():
+def get_random_card(user_id):
     """Get a random card with 'correct' less than 2"""
     db = get_db()
     collection = db['cards']
     try:
         card = collection.find_one(
-            {"correct": {"$lt": 2}},
+            {
+                "correct": {"$lt": 2},
+                "checked_by": {"$nin": [user_id]}
+             },
             sort=[("correct", -1)]  # Sort by correctness in descending order
         )
         return card
@@ -122,3 +126,4 @@ def get_random_card():
 def mark_unchecked(data):
     """Mark the card as incorrect by setting its correctness to 0"""
     data['correct'] = 0
+    data['checked_by'] = ""
