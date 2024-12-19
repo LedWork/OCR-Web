@@ -1,12 +1,14 @@
 import os
 
-from flask import Flask, session
+from flask import Flask, session, render_template, jsonify
 from flask_session import Session
 from datetime import timedelta
 from app.core.db import get_db
+from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="dist/static", template_folder="dist", static_url_path="/static")
+CSRFProtect(app)
 db = get_db()
 CORS(app)
 
@@ -25,26 +27,33 @@ from app.card.views import card_bp
 from app.auth.views import auth_bp
 from app.image.views import image_bp
 
-app.register_blueprint(admin_bp, url_prefix="/admin")
-app.register_blueprint(card_bp, url_prefix="/card")
-app.register_blueprint(auth_bp, url_prefix="/auth")
-app.register_blueprint(image_bp, url_prefix='/image')
+# have in mind i added /api/
+app.register_blueprint(admin_bp, url_prefix="/api/admin")
+app.register_blueprint(card_bp, url_prefix="/api/card")
+app.register_blueprint(auth_bp, url_prefix="/api/auth")
+app.register_blueprint(image_bp, url_prefix='/api/image')
 
 
-def get_routes():
-    routes = []
-    with app.test_request_context():
-        for rule in app.url_map.iter_rules():
-            routes.append({
-                "url": rule.rule,
-                "methods": list(rule.methods)
-            })
-    return routes
+@app.route("/api/csrf-token", methods=["GET"])
+def csrf_token():
+    # potentially useful when it comes to working with vue
+    """option 1 of getting csrf token, later to be choosed to correct one """
+    token1 = generate_csrf()
+    return jsonify({"csrf_token": token1})
 
 
-@app.route('/')
-def home():
-    return get_routes() # aby moc zobaczyc route'y
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def index(path):
+    """Option 2 probably will not work but let's try out bc it seems safe and looks cool"""
+    return render_template("index.html")
+
+
+@app.after_request
+def add_csrf_cookie(response):
+    if response.status_code in range(200, 400) and not response.direct_passthrough:
+        response.set_cookie("csrftoken", generate_csrf(), secure=True)
+    return response
 
 
 if __name__ == '__main__':
