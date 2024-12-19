@@ -9,12 +9,21 @@ export default {
   },
   async mounted() {
     try {
-      this.csrfToken = this.getCookie('CSRF-TOKEN')
+      const getCSRFToken = () => {
+        if (document.cookie && document.cookie !== '') {
+          const cookies = document.cookie.split(';')
+          for (let cookie of cookies) {
+            cookie = cookie.trim()
+            let [cookieName, cookieValue] = cookie.split('=')
+            if (cookieName == 'csrftoken') return cookieValue
+          }
+        }
+        return null
+      }
       const response = await axios.get(apiUrl + '/auth/session', {
         headers: {
-          'X-CSRF-TOKEN': this.csrfToken,
+          'X-CSRF-TOKEN': getCSRFToken(),
         },
-        withCredentials: true,
       })
       console.log(response)
       if (response.status != 200) {

@@ -28,32 +28,35 @@ export default {
         return null
       }
       try {
-        // const response = await axios.post(
-        //   apiUrl + '/auth/login',
+        // const addUser = await axios.post(
+        //   apiUrl + '/admin/add-user',
         //   {
         //     login: this.login,
         //     password: this.password,
         //   },
         //   {
         //     headers: {
-        //       'X-CSRF-TOKEN': this.csrfToken,
+        //       'X-CSRF-TOKEN': getCSRFToken(),
         //     },
         //   },
         // )
-        // if (response.status == 200) {
-        //   console.log(response.status)
-        //   globalState.isAuthenticated = true
-        //   this.$router.push('/instrukcja')
-        // }
-        const response = fetch(apiUrl + '/auth/login', {
-          method: 'POST',
-          headers: {
-            Accept: 'application/json',
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
+        const response = await axios.post(
+          apiUrl + '/auth/login',
+          {
+            login: this.login,
+            password: this.password,
           },
-          body: JSON.stringify({ Hello: 'World' }),
-        })
+          {
+            headers: {
+              'X-CSRF-TOKEN': getCSRFToken(),
+            },
+          },
+        )
+        if (response.status == 200) {
+          console.log(response.status)
+          globalState.isAuthenticated = true
+          this.$router.push('/instrukcja')
+        }
       } catch (e) {}
     },
   },
