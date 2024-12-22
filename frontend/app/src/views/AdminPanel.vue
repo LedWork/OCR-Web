@@ -1,10 +1,13 @@
 <script>
 import axios from "axios";
+import {adminCheckSession, changeOrientation, getCSRFToken} from "@/scripts/utils.js";
+
 export default {
   data() {
     return {
       uploadedJson: null,
       uploadedImages: [],
+      admin: false
     };
   },
   methods: {
@@ -35,11 +38,12 @@ export default {
             const data = JSON.parse(fileContent);
 
             const response = await axios.post(
-              "http://localhost:5000/admin/upload-data",
+              "/api/admin/upload-data",
               data,
               {
                 headers: {
                   "Content-Type": "application/json",
+                  'X-CSRF-TOKEN': getCSRFToken(),
                 }
               }
             );
@@ -53,7 +57,7 @@ export default {
       console.error("Error: ", error);
     }
   },
-  handleImageUpload(event) {
+    handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
         this.uploadedImages = Array.from(files);
@@ -67,7 +71,7 @@ export default {
         alert("Please upload at least one image file.");
         return;
       }
-      
+
       const formData = new FormData();
       this.uploadedImages.forEach((image) => {
         formData.append("files", image);
@@ -75,11 +79,12 @@ export default {
 
       try {
         const response = await axios.post(
-          "http://localhost:5000/admin/upload-images",
+          "/api/admin/upload-images",
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
+              'X-CSRF-TOKEN': getCSRFToken(),
             },
           }
         );
@@ -88,57 +93,66 @@ export default {
       }
     },
   },
+  async mounted(){
+    this.admin = await adminCheckSession();
+    changeOrientation();
+    window.addEventListener("resize", changeOrientation);
+  },
+  beforeunload() {
+    window.removeEventListener("resize", changeOrientation);
+  }
 }
 </script>
 <template>
-  <div class="container">
-    <div class="logout-container">
-      <button class="button logout-btn">Wyloguj</button>
-    </div>
+  <div class="wrapper">
+    <div class="container" v-if="admin">
+      <div class="logout-container">
+        <button class="button logout-btn">Wyloguj</button>
+      </div>
 
-    <div class="upload-container">
-      <h1>
-        Uploading JSON data
-      </h1>
-      <form @submit.prevent="uploadJSON" class="upload-form">
-        <label for="jsonUpload" class="button upload-label">Choose JSON file</label>
-        <input
-          id="jsonUpload"
-          type="file"
-          accept=".json"
-          @change="handleJSONUpload"
-          class="file-input"
-        />
-        <button type="submit" class="button upload-btn">Upload</button>
-      </form>
-    </div>
+      <div class="upload-container">
+        <h1>
+          Uploading JSON data
+        </h1>
+        <form @submit.prevent="uploadJSON" class="upload-form">
+          <label for="jsonUpload" class="button upload-label">Choose JSON file</label>
+          <input
+            id="jsonUpload"
+            type="file"
+            accept=".json"
+            @change="handleJSONUpload"
+            class="file-input"
+          />
+          <button type="submit" class="button upload-btn">Upload</button>
+        </form>
+      </div>
 
-<div class="upload-container">
-      <h1>
-        Uploading images
-      </h1>
-      <form @submit.prevent="uploadImages" class="upload-form">
-        <label for="imageUpload" class="button upload-label">Choose images</label>
-        <input
-          id="imageUpload"
-          type="file"
-          accept="image/*"
-          @change="handleImageUpload"
-          multiple
-          class="file-input"
-        />
-        <button type="submit" class="button upload-btn">Upload</button>
-      </form>
+      <div class="upload-container">
+        <h1>
+          Uploading images
+        </h1>
+        <form @submit.prevent="uploadImages" class="upload-form">
+          <label for="imageUpload" class="button upload-label">Choose images</label>
+          <input
+            id="imageUpload"
+            type="file"
+            accept="image/*"
+            @change="handleImageUpload"
+            multiple
+            class="file-input"
+          />
+          <button type="submit" class="button upload-btn">Upload</button>
+        </form>
+      </div>
     </div>
-
   </div>
 </template>
 
 <style scoped>
 .container {
   max-width: 600px;
-  margin: 50px auto;
-  padding: 20px;
+  margin: 20px auto;
+  padding: 15px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -146,6 +160,7 @@ export default {
 
 .logout-container {
   text-align: right;
+  margin-bottom: 10px;
 }
 
 .button {
@@ -173,21 +188,21 @@ export default {
 .upload-container {
   background-color: #f5f5f5;
   border-radius: 5px;
-  margin-top: 30px;
-  padding: 30px;
+  margin-top: 20px;
+  padding: 20px;
   text-align: center;
 }
 
 h1 {
-  font-size: 30px;
+  font-size: 24px;
   font-weight: bold;
 }
 
 .upload-form {
-  margin: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 10px;
 }
 
 .upload-label {
@@ -200,7 +215,6 @@ h1 {
 }
 
 .upload-btn {
-  margin: 5px;
   background-color: #28a745;
 }
 
@@ -208,4 +222,47 @@ h1 {
   background-color: #218838;
 }
 
+@media (max-width: 768px) {
+  .container {
+    max-width: 90%;
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 20px;
+  }
+
+  .button {
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+
+  .upload-container {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    margin: 10px auto;
+    padding: 8px;
+  }
+
+  h1 {
+    font-size: 18px;
+  }
+
+  .upload-form {
+    gap: 5px;
+  }
+
+  .button {
+    font-size: 10px;
+    padding: 6px 12px;
+  }
+
+  .upload-container {
+    padding: 10px;
+  }
+}
 </style>

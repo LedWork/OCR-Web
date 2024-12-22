@@ -1,6 +1,7 @@
 <script>
 import { globalState } from '@/scripts/store'
 import axios from 'axios'
+import {getCSRFToken} from "@/scripts/utils.js";
 const apiUrl = import.meta.env.VITE_API_URL
 export default {
   // async created() {
@@ -16,32 +17,21 @@ export default {
   },
   methods: {
     async goToInstruction() {
-      const getCSRFToken = () => {
-        if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';')
-          for (let cookie of cookies) {
-            cookie = cookie.trim()
-            let [cookieName, cookieValue] = cookie.split('=')
-            if (cookieName == 'csrftoken') return cookieValue
-          }
-        }
-        return null
-      }
       try {
-        // const addUser = await axios.post(
-        //   apiUrl + '/admin/add-user',
-        //   {
-        //     login: this.login,
-        //     password: this.password,
-        //   },
-        //   {
-        //     headers: {
-        //       'X-CSRF-TOKEN': getCSRFToken(),
-        //     },
-        //   },
-        // )
+         /*const addUser = await axios.post(
+           '/api/admin/add-user',
+           {
+             login: this.login,
+             password: this.password,
+           },
+           {
+             headers: {
+               'X-CSRF-TOKEN': getCSRFToken(),
+             },
+           },
+         )*/
         const response = await axios.post(
-          apiUrl + '/auth/login',
+          '/api/auth/login',
           {
             login: this.login,
             password: this.password,
@@ -52,12 +42,12 @@ export default {
             },
           },
         )
-        if (response.status == 200) {
+        if (response.status === 200) {
           console.log(response.status)
           globalState.isAuthenticated = true
           this.$router.push('/instrukcja')
         }
-      } catch (e) {}
+      } catch {}
     },
   },
 }

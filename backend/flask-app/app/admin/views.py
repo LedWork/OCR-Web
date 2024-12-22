@@ -4,6 +4,7 @@ from flask import request, jsonify, Blueprint
 from app.card.model import load_cards
 from app.image.model import load_images
 from app.core.db import get_db
+from app.auth.decorators import admin_required
 
 
 admin_bp = Blueprint('admin', __name__)
@@ -11,6 +12,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 
 @admin_bp.route('/upload-data', methods=['POST'])
+@admin_required
 def upload_data():
     try:
         data = request.get_json()
@@ -28,6 +30,7 @@ def upload_data():
 
 
 @admin_bp.route('/upload-images', methods=['POST'])
+@admin_required
 def upload_image():
     files = request.files.getlist('files')
     if not files:
@@ -41,6 +44,7 @@ def upload_image():
 
 
 @admin_bp.route('/add-user', methods=['POST'])
+@admin_required
 def add_user():
     data = request.get_json()
     if not data:
@@ -58,11 +62,9 @@ def add_user():
         salt = bcrypt.gensalt()
         data['password'] = bcrypt.hashpw(data['password'].encode('utf-8'), salt)
 
+        data['is_super_user'] = False
+
         collection.insert_one(data)
         return {"message": "user added sucessfully!"}, 200
     except Exception as e:
-        return jsonify({"message": f"Faild to add user: {str(e)}"}), 500
-
-
-
-
+        return jsonify({"message": f"Failed to add user: {str(e)}"}), 500

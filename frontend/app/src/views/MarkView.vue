@@ -1,6 +1,7 @@
 <script>
 import DynamicForm from '@/components/DynamicForm.vue'
 import axios from 'axios'
+import {checkSession, changeOrientation, getCSRFToken} from "@/scripts/utils.js";
 export default {
   components: {
     DynamicForm,
@@ -21,19 +22,10 @@ export default {
     }
   },
   methods: {
-    ChangeOrientation() {
-      if (window.screen.width > 768) {
-        document.querySelector('.wrapper').classList.add('horizontal')
-        document.querySelector('.wrapper').classList.remove('vertical')
-      } else {
-        document.querySelector('.wrapper').classList.remove('horizontal')
-        document.querySelector('.wrapper').classList.add('vertical')
-      }
-    },
-    async GetCard() {
+    async getCard() {
       try {
-        const response = await axios.get('http://localhost:5000/card/random')
-        console.log(response.data)
+        const response = await axios.get('/api/card/random')
+        console.log(response)
         await this.loadJsonData(response.data)
       } catch (error) {
         console.log(error)
@@ -42,6 +34,7 @@ export default {
     async loadJsonData(data) {
       try {
         this.image_code = data.image_code
+        console.log(this.image_code)
         this.jsonData = this.parseGtParse(data.gt_parse)
       } catch (error) {
         console.error('Error loading JSON:', error)
@@ -49,10 +42,9 @@ export default {
     },
     async loadImage() {
       try {
-        const response = await axios.get(`http://localhost:5000/image/${this.image_code}`)
-
-        if (response.data.photo) {
-          this.card = `data:image/jpeg;base64,${response.data.photo}`
+        const response = await axios.get(`api/image/${this.image_code}`)
+        if (response.data[0].photo) {
+          this.card = `data:image/jpeg;base64,${response.data[0].photo}`
         } else {
           console.error('No image found in the response')
         }
@@ -101,28 +93,37 @@ export default {
       }
       return reorderFields(formattedData, fieldOrder1)
     },
+    async handleSubmit() {
+      try {
+        const response = await this.$axios.post(
+          'api/card/correct',
+          this.jsonData,
+          {
+            headers: {
+              'X-CSRF-TOKEN': getCSRFToken(),
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          window.location.reload();
+        } else {
+          alert("Error: " + response.data.error);
+        }
+      } catch (error) {
+        console.error("Error sending data:", error);
+        alert("There was an error sending your data.");
+      }
+    },
   },
   async mounted() {
-    try {
-      const response = await axios.get(apiUrl + '/auth/session', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-      console.log(response)
-      if (!response.ok) {
-        this.$router.push('/')
-      } else this.loading = false
-    } catch (e) {
-      this.$router.push('/')
-    }
-    this.ChangeOrientation()
-    this.GetCard()
-    window.addEventListener('resize', this.ChangeOrientation)
+    this.loading = await checkSession()
+    await this.getCard()
+    await this.loadImage()
+    window.addEventListener('resize', changeOrientation)
   },
   beforeUnmount() {
-    window.removeEventListener('resize', this.ChangeOrientation)
+    window.removeEventListener('resize', changeOrientation)
   },
 }
 </script>

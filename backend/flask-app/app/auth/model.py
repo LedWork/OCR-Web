@@ -21,3 +21,10 @@ def password_correct(login, password):
         return True
     else:
         return False
+
+def is_admin(login):
+    db = get_db()
+    collection = db['users']
+    user = collection.find_one({"login": login})
+
+    return user is not None and user.get('is_super_user', False)

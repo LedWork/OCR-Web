@@ -1,47 +1,31 @@
 <script>
-import axios from 'axios'
-const apiUrl = import.meta.env.VITE_API_URL
+import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
 export default {
   data() {
     return {
       loading: true,
+      admin: false
     }
   },
   async mounted() {
-    try {
-      const getCSRFToken = () => {
-        if (document.cookie && document.cookie !== '') {
-          const cookies = document.cookie.split(';')
-          for (let cookie of cookies) {
-            cookie = cookie.trim()
-            let [cookieName, cookieValue] = cookie.split('=')
-            if (cookieName == 'csrftoken') return cookieValue
-          }
-        }
-        return null
-      }
-      const response = await axios.get(apiUrl + '/auth/session', {
-        headers: {
-          'X-CSRF-TOKEN': getCSRFToken(),
-        },
-      })
-      console.log(response)
-      if (response.status != 200) {
-        this.$router.push('/')
-      } else this.loading = false
-    } catch (e) {
-      this.$router.push('/')
-    }
+    console.log(this.$router);
+    this.loading = await checkSession();
+    this.admin = await adminCheckSession();
+    changeOrientation();
   },
   methods: {
     goToMarking() {
       this.$router.push('/oznaczanie')
     },
+    goToAdmin() {
+      this.$router.push('/admin')
+    }
   },
 }
 </script>
 <template>
   <div class="wrapper vertical" v-if="!loading">
+    <div v-if="admin" class="button" @click="goToAdmin">ADMIN PANEL</div>
     <div class="text-block">
       <p class="title">Instrukcja</p>
       <p class="content">
