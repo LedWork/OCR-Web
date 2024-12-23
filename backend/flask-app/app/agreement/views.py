@@ -1,6 +1,7 @@
 from flask import Blueprint, request, session, redirect, url_for
 from app.core.db import get_db
 from bson.objectid import ObjectId
+from datetime import datetime
 
 contract_bp = Blueprint('contract', __name__, url_prefix='/contract')
 
@@ -14,8 +15,13 @@ def contract():
                 db = get_db()
                 db['users'].update_one(
                     {"_id": ObjectId(user_id)},
-                    {"$set": {"agreed_to_contract": True}}
-                )
+                    {
+                        "$set": {
+                            "agreed_to_contract": True,
+                            "contract_accepted_at": datetime.utcnow()
+                        }
+                    }
+                
                 return redirect(url_for('home.home'))
         return "You must agree to the contract to use the app.", 403
 
