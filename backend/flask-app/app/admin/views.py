@@ -44,6 +44,7 @@ def upload_image():
 
 
 @admin_bp.route('/add-user', methods=['POST'])
+@admin_required
 def add_user():
     data = request.get_json()
     if not data:
