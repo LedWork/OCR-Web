@@ -1,9 +1,9 @@
 
-import bcrypt
+
 from flask import request, jsonify, Blueprint
 from app.card.model import load_cards
 from app.image.model import load_images
-from app.core.db import get_db
+from app.admin.model import create_user, user_exists
 from app.auth.decorators import admin_required
 
 
@@ -44,27 +44,15 @@ def upload_image():
 
 
 @admin_bp.route('/add-user', methods=['POST'])
-@admin_required
 def add_user():
     data = request.get_json()
     if not data:
         return jsonify({"message": "No JSON data provided"}), 400
     try:
-        db = get_db()
-        collection = db['users']
-        login = data['login']
-
-        existing_user = collection.find_one({"login": login})
-
-        if existing_user:
+        if user_exists(data):
             return jsonify({"message": "user with this login already exists"}), 400
 
-        salt = bcrypt.gensalt()
-        data['password'] = bcrypt.hashpw(data['password'].encode('utf-8'), salt)
-
-        data['is_super_user'] = False
-
-        collection.insert_one(data)
-        return {"message": "user added sucessfully!"}, 200
+        password = create_user(data)
+        return {"message": f"user added sucessfully!, password:{password}"}, 200
     except Exception as e:
         return jsonify({"message": f"Failed to add user: {str(e)}"}), 500
