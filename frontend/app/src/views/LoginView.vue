@@ -2,7 +2,6 @@
 import { globalState } from '@/scripts/store'
 import axios from 'axios'
 import {getCSRFToken} from "@/scripts/utils.js";
-const apiUrl = import.meta.env.VITE_API_URL
 export default {
   // async created() {
   //   const response = await axios.get(apiUrl + '/csrf-token')
@@ -13,23 +12,12 @@ export default {
       login: null,
       password: null,
       csrfToken: null,
+      error: null,
     }
   },
   methods: {
     async goToInstruction() {
       try {
-         /*const addUser = await axios.post(
-           '/api/admin/add-user',
-           {
-             login: this.login,
-             password: this.password,
-           },
-           {
-             headers: {
-               'X-CSRF-TOKEN': getCSRFToken(),
-             },
-           },
-         )*/
         const response = await axios.post(
           '/api/auth/login',
           {
@@ -43,12 +31,30 @@ export default {
           },
         )
         if (response.status === 200) {
-          console.log(response.status)
           globalState.isAuthenticated = true
-          this.$router.push('/instrukcja')
+          this.$router.push({name: 'instruction'})
         }
-      } catch {}
+      } catch(error) {
+        console.error(error)
+        this.error = error.response.data.message
+      }
     },
+    // TEMPORARY FOR TESTING, WILL BE DELETED IN PROD VERSION
+    async makeAdmin() {
+      const response = await axios.post(
+        '/api/admin/temp-admin',
+        {},
+        {
+          headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+          },
+        },
+      )
+
+      if (response.status === 200) {
+        alert(response.data.message);
+      }
+    }
   },
 }
 </script>
@@ -70,8 +76,15 @@ export default {
         name="password"
         v-model="password"
       />
+
+      <p v-if="error" class="error">{{ error }}</p>
+
       <div class="btn-wrapper">
         <div class="button" @click="goToInstruction">ZALOGUJ SIĘ</div>
+      </div>
+
+      <div class="btn-wrapper">
+        <div class="button" @click="makeAdmin">CREATE ADMIN </div>
       </div>
     </div>
   </div>

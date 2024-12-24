@@ -25,6 +25,7 @@ def check_admin_session():
 @auth_bp.route('/login', methods=['POST'])
 def auth_login():
     data = request.get_json()
+    print(data)
     if data is None or 'login' not in data or 'password' not in data:
         return jsonify({"message": "Login or password incorrect."}), 401
 
@@ -34,12 +35,11 @@ def auth_login():
     if password_correct(data['login'], data['password']):
         session['user'] = data['login']
 
-        if is_admin(data['login']):
-            session['is_super_user'] = True
-        else:
-            session['is_super_user'] = False
-
-
         return jsonify({"message": "Sucessfully logged in."}), 200
     else:
         return jsonify({"message": "Login or password incorrect."}), 401
+
+@auth_bp.route('/break-session', methods=['POST'])
+def break_session():
+    session.clear()
+    return jsonify({"message": "Session ended"}), 200

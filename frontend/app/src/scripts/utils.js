@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export async function checkSession() {
+export async function checkSession(router) {
   try {
     const response = await axios.get('/api/auth/session', {
       method: 'GET',
@@ -9,16 +9,16 @@ export async function checkSession() {
       },
     })
     if (response.status !== 200) {
-      this.$router.push('/')
+      router.push({name: 'login'})
     }
     else
       return false;
   } catch {
-    this.$router.push('/')
+    router.push({name: 'login'})
   }
 }
 
-export async function adminCheckSession() {
+export async function adminCheckSession(router = null) {
   try {
     const response = await axios.get('/api/auth/session-admin', {
       method: 'GET',
@@ -28,12 +28,12 @@ export async function adminCheckSession() {
     })
     console.log(response)
     if (response.status !== 200) {
-      this.$router.push('/')
+      router.push({name: 'login'})
     }
     else
       return true;
   } catch {
-    this.$router.push('/')
+    router.push({name: 'login'})
   }
 }
 

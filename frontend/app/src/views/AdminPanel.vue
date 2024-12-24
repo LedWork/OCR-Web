@@ -7,7 +7,9 @@ export default {
     return {
       uploadedJson: null,
       uploadedImages: [],
-      admin: false
+      admin: false,
+      login: null,
+      password: null,
     };
   },
   methods: {
@@ -90,11 +92,51 @@ export default {
         );
         alert("Upload successful.", response.data);
       } catch (error) {
+        console.error(error);
       }
     },
+    goToInstruction() {
+      this.$router.push({name: "instruction"});
+    },
+    async logout() {
+      const response = await axios.post(
+        '/api/auth/break-session',
+        {},
+        {
+          headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+          },
+        },
+      )
+
+      if (response.status === 200) {
+        window.location.reload();
+      }
+    },
+    async addUser() {
+      try {
+        const response = await axios.post(
+          '/api/admin/add-user',
+          {
+            login: this.login,
+          },
+          {
+            headers: {
+              'X-CSRF-TOKEN': getCSRFToken(),
+            },
+          },
+        )
+        console.log(response)
+        this.password = response.data.password;
+      }
+      catch (error) {
+        console.error(error);
+      }
+
+    }
   },
   async mounted(){
-    this.admin = await adminCheckSession();
+    this.admin = await adminCheckSession(this.$router);
     changeOrientation();
     window.addEventListener("resize", changeOrientation);
   },
@@ -106,60 +148,92 @@ export default {
 <template>
   <div class="wrapper">
     <div class="container" v-if="admin">
-      <div class="logout-container">
-        <button class="button logout-btn">Wyloguj</button>
+      <div class="button-container">
+        <button @click="goToInstruction" class="button">Back</button>
+        <button @click="logout" class="button logout-btn">Logout</button>
+      </div>
+
+      <div class="uploads">
+        <div class="upload-container">
+          <h1>
+            Uploading JSON data
+          </h1>
+          <form @submit.prevent="uploadJSON" class="upload-form">
+            <label for="jsonUpload" class="button upload-label">Choose JSON file</label>
+            <input
+              id="jsonUpload"
+              type="file"
+              accept=".json"
+              @change="handleJSONUpload"
+              class="file-input"
+            />
+            <button type="submit" class="button upload-btn">Upload</button>
+          </form>
+        </div>
+
+        <div class="upload-container">
+          <h1>
+            Uploading images
+          </h1>
+          <form @submit.prevent="uploadImages" class="upload-form">
+            <label for="imageUpload" class="button upload-label">Choose images</label>
+            <input
+              id="imageUpload"
+              type="file"
+              accept="image/*"
+              @change="handleImageUpload"
+              multiple
+              class="file-input"
+            />
+            <button type="submit" class="button upload-btn">Upload</button>
+          </form>
+        </div>
       </div>
 
       <div class="upload-container">
-        <h1>
-          Uploading JSON data
-        </h1>
-        <form @submit.prevent="uploadJSON" class="upload-form">
-          <label for="jsonUpload" class="button upload-label">Choose JSON file</label>
+        <h1>Adding user</h1>
+
+        <form @submit.prevent="addUser" class="upload-form">
           <input
-            id="jsonUpload"
-            type="file"
-            accept=".json"
-            @change="handleJSONUpload"
-            class="file-input"
-          />
+            id="userUpload"
+            type="text"
+            class="text-input"
+            placeholder="Login"
+            v-model="login"
+          >
           <button type="submit" class="button upload-btn">Upload</button>
         </form>
+
+        <h3 v-if="password">
+          Password: {{ password }}
+        </h3>
       </div>
 
-      <div class="upload-container">
-        <h1>
-          Uploading images
-        </h1>
-        <form @submit.prevent="uploadImages" class="upload-form">
-          <label for="imageUpload" class="button upload-label">Choose images</label>
-          <input
-            id="imageUpload"
-            type="file"
-            accept="image/*"
-            @change="handleImageUpload"
-            multiple
-            class="file-input"
-          />
-          <button type="submit" class="button upload-btn">Upload</button>
-        </form>
-      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+
 .container {
-  max-width: 600px;
+  max-width: 90%;
   margin: 20px auto;
-  padding: 15px;
+  padding: 50px;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
 }
 
-.logout-container {
-  text-align: right;
+.uploads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 50px;
+}
+
+.button-container {
+  display: flex;
+  justify-content: space-between;
   margin-bottom: 10px;
 }
 
@@ -186,14 +260,18 @@ export default {
 }
 
 .upload-container {
+  flex: 1 1 calc(50% - 50px);
+  box-sizing: border-box;
+
   background-color: #f5f5f5;
   border-radius: 5px;
   margin-top: 20px;
-  padding: 20px;
+  padding: 30px;
   text-align: center;
 }
 
 h1 {
+  white-space: nowrap;
   font-size: 24px;
   font-weight: bold;
 }
@@ -214,7 +292,12 @@ h1 {
   display: none;
 }
 
+.text-input {
+  margin-top: 20px;
+}
+
 .upload-btn {
+  margin-top: 5px;
   background-color: #28a745;
 }
 
@@ -224,28 +307,13 @@ h1 {
 
 @media (max-width: 768px) {
   .container {
-    max-width: 90%;
-    padding: 10px;
-  }
-
-  h1 {
-    font-size: 20px;
-  }
-
-  .button {
-    font-size: 12px;
-    padding: 8px 16px;
-  }
-
-  .upload-container {
-    padding: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
+    width: 60%;
     margin: 10px auto;
-    padding: 8px;
+    padding: 20px;
+  }
+
+  .uploads {
+    flex-direction: column;
   }
 
   h1 {
@@ -262,7 +330,13 @@ h1 {
   }
 
   .upload-container {
-    padding: 10px;
+    padding: 20px;
+    flex: 1 1 100%;
+  }
+
+  .text-input {
+    margin-top: 10px;
+    font-size: 10px;
   }
 }
 </style>

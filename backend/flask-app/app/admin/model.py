@@ -29,7 +29,7 @@ def create_user(data):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
 
     data['password'] = hashed_password
-    data['is_super_user'] = True
+    data['is_super_user'] = False
 
     collection.insert_one(data)
     return password

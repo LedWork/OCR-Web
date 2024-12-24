@@ -8,7 +8,7 @@ export default {
     }
   },
   async mounted() {
-    this.loading = await checkSession();
+    this.loading = await checkSession(this.$router);
     changeOrientation();
   }
 }

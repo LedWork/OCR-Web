@@ -15,17 +15,17 @@ const router = createRouter({
       component: LoginView,
     },
     {
-      path: '/instrukcja',
+      path: '/instruction',
       name: 'instruction',
       component: InstructionView,
     },
     {
-      path: '/oznaczanie',
+      path: '/marking',
       name: 'marking',
       component: MarkView,
     },
     {
-      path: '/podziekowania',
+      path: '/thanks',
       name: 'thanks',
       component: ThanksView,
     },

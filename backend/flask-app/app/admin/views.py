@@ -1,5 +1,3 @@
-
-
 from flask import request, jsonify, Blueprint
 from app.card.model import load_cards
 from app.image.model import load_images
@@ -54,6 +52,28 @@ def add_user():
             return jsonify({"message": "user with this login already exists"}), 400
 
         password = create_user(data)
-        return {"message": f"user added sucessfully!, password:{password}"}, 200
+        return {"message": f"user added sucessfully!", "password": password}, 200
     except Exception as e:
         return jsonify({"message": f"Failed to add user: {str(e)}"}), 500
+
+
+# TEMPORARY FOR TESTING, WILL BE DELETED IN PROD VERSION
+from app.core.db import get_db
+import bcrypt
+@admin_bp.route('/temp-admin', methods=['POST'])
+def create_temp_admin():
+    db = get_db()
+    collection = db['users']
+
+    data = request.get_json()
+
+    password = 'admin'
+    salt = bcrypt.gensalt()
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+    data['login'] = 'admin'
+    data['password'] = hashed_password
+    data['is_super_user'] = True
+
+    collection.insert_one(data)
+    return {"message": f"Admin created! Login: admin Password: admin"}, 200

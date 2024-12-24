@@ -8,17 +8,16 @@ export default {
     }
   },
   async mounted() {
-    console.log(this.$router);
-    this.loading = await checkSession();
+    this.loading = await checkSession(this.$router);
     this.admin = await adminCheckSession();
     changeOrientation();
   },
   methods: {
     goToMarking() {
-      this.$router.push('/oznaczanie')
+      this.$router.push({name: 'marking'})
     },
     goToAdmin() {
-      this.$router.push('/admin')
+      this.$router.push({name: 'admin'})
     }
   },
 }
