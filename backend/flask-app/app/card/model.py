@@ -31,11 +31,11 @@ def load_card_to_db(json_data):
                 print(f"Card with _id {json_data.get('_id')}"
                       f" already exists. Skipping insertion.")
                 return {"error": f"Card with the same _id already"
-                                 f" exists: {json_data.get('_id')}"}, 400
+                                 f" exists: {json_data.get('_id')}, Skipped insertion"}, 200
 
-        mark_unchecked(json_data)
-        result = collection.insert_one(json_data)
-        print(f"Data inserted with ID: {result.inserted_id}")
+            mark_unchecked(json_data)
+            result = collection.insert_one(json_data)
+            print(f"Data inserted with ID: {result.inserted_id}")
 
         return {"message": "Card successfully uploaded."}, 200
     except Exception as e:
@@ -111,6 +111,16 @@ def get_random_card(user_id):
     except Exception as e:
         print(f"Error getting random card: {e}")
         return None
+
+def retrieve_validated_cards():
+    db = get_db()
+    collection = db['cards']
+    cards = collection.find(
+        {
+            "correct": {"$gte": 2},
+        }
+    )
+    return list(cards)
 
 
 def mark_unchecked(data):

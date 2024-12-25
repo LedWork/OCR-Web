@@ -8,7 +8,7 @@ from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder="dist/static", template_folder="dist", static_url_path="/static")
-CSRFProtect(app)
+csrf = CSRFProtect(app)
 db = get_db()
 CORS(app)
 
@@ -26,26 +26,26 @@ from app.admin.views import admin_bp
 from app.card.views import card_bp
 from app.auth.views import auth_bp
 from app.image.views import image_bp
+from app.retraining.views import retraining_bp
 
-# have in mind i added /api/
+csrf.exempt(retraining_bp)
 app.register_blueprint(admin_bp, url_prefix="/api/admin")
 app.register_blueprint(card_bp, url_prefix="/api/card")
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(image_bp, url_prefix='/api/image')
+app.register_blueprint(retraining_bp, url_prefix='/api/retraining')
+
 
 
 @app.route("/api/csrf-token", methods=["GET"])
 def csrf_token():
-    # potentially useful when it comes to working with vue
-    """option 1 of getting csrf token, later to be choosed to correct one """
-    token1 = generate_csrf()
-    return jsonify({"csrf_token": token1})
+    token = generate_csrf()
+    return jsonify({"csrf_token": token})
 
 
 @app.route("/", defaults={"path": ""})
 @app.route("/<path:path>")
 def index(path):
-    """Option 2 probably will not work but let's try out bc it seems safe and looks cool"""
     return render_template("index.html")
 
 
