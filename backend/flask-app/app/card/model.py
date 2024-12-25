@@ -1,5 +1,6 @@
 from bson import ObjectId
 from app.core.db import get_db
+from app.image.model import delete_image
 
 
 def load_cards(data):
@@ -127,3 +128,39 @@ def mark_unchecked(data):
     """Mark the card as incorrect by setting its correctness to 0"""
     data['correct'] = 0
     data['checked_by'] = []
+
+
+def find_card_by_image_code(card_image_code):
+    db = get_db()
+    collection = db['cards']
+    try:
+        card = collection.find_one({"image_code": card_image_code})
+        if card:
+            return card
+        else:
+            return {"error": "Card not found."}
+    except Exception as e:
+        print(f"Error finding card: {e}")
+        return {"error": f"An error occurred: {str(e)}"}
+
+
+def retrieve_all_image_codes_from_cards():
+    db = get_db()
+    collection = db['cards']
+    image_codes = collection.find({}, {"image_code": 1, "_id": 0})
+    return [card["image_code"] for card in image_codes]
+
+
+def delete_card_by_image_code(card_image_code):
+    db = get_db()
+    collection = db['cards']
+    try:
+        result = collection.delete_one({"image_code": card_image_code})
+        if result.deleted_count == 1:
+            delete_image(card_image_code)
+            return {"message": "Card successfully deleted."}, 200
+        else:
+            return {"error": "Card not found."}, 404
+    except Exception as e:
+        print(f"Error deleting card: {e}")
+        return {"error": f"An error occurred: {str(e)}"}, 500

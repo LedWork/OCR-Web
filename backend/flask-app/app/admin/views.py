@@ -1,9 +1,10 @@
 from flask import request, jsonify, Blueprint
-from app.card.model import load_cards
+from app.card.model import (load_cards, find_card_by_image_code, delete_card_by_image_code,
+                            retrieve_all_image_codes_from_cards)
 from app.image.model import load_images
 from app.admin.model import create_user, user_exists
 from app.auth.decorators import admin_required
-
+from app.core.utils import parse_json
 
 admin_bp = Blueprint('admin', __name__)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -57,6 +58,33 @@ def add_user():
         return jsonify({"message": f"Failed to add user: {str(e)}"}), 500
 
 
+
+
+@admin_bp.route('/cards', methods=['GET'])
+@admin_required
+def get_all_cards():
+    return retrieve_all_image_codes_from_cards()
+
+
+@admin_bp.route('/card/<image_code>', methods=['DELETE'])
+@admin_required
+def delete_card(code):
+    response, status  = delete_card_by_image_code(code)
+    return response, status
+
+
+@admin_bp.route('/card/{<image_code>}', methods=['GET'])
+@admin_required
+def get_card(code):
+    # to get image -> go to image blueprint
+    card = find_card_by_image_code(code)
+    parsed_card = parse_json(card)
+    if not parsed_card:
+        return jsonify({"error": "No cards available in the database."}), 400
+
+    return jsonify(parsed_card)
+
+
 # TEMPORARY FOR TESTING, WILL BE DELETED IN PROD VERSION
 from app.core.db import get_db
 import bcrypt
@@ -77,3 +105,4 @@ def create_temp_admin():
 
     collection.insert_one(data)
     return {"message": f"Admin created! Login: admin Password: admin"}, 200
+

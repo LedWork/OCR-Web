@@ -4,7 +4,7 @@ import bcrypt
 from app.core.db import get_db
 
 
-def password_generator(length=8, symbols=True):
+def password_generator(length=8, symbols=False):
     characters = string.ascii_letters + string.digits
     if symbols:
         characters += string.punctuation
