@@ -29,10 +29,16 @@ def load_card_to_db(json_data):
             existing_card = collection.find_one({"_id": json_data.get("_id")})
 
             if existing_card:
-                print(f"Card with _id {json_data.get('_id')}"
-                      f" already exists. Skipping insertion.")
-                return {"error": f"Card with the same _id already"
-                                 f" exists: {json_data.get('_id')}, Skipped insertion"}, 400
+                if existing_card.get('correct', 0) > 0:
+                    return {
+                        "error": f"Card with the same _id already exists: {json_data.get('_id')}"
+                                 f" and was checked already. Skipped insertion"}, 400
+                else:
+                    db.collection.update_one(
+                        {'_id': existing_card['_id']},
+                        {'$set': json_data}
+                    )
+                    return {"message": f"Card with _id {json_data.get('_id')} was updated with new data."}, 200
 
         mark_unchecked(json_data)
         result = collection.insert_one(json_data)
