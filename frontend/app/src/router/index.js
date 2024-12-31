@@ -5,6 +5,8 @@ import MarkView from '../views/MarkView.vue'
 import ThanksView from '../views/ThanksView.vue'
 import Error404 from '../views/Error404View.vue'
 import AdminPanel from '../views/AdminPanel.vue'
+import CardsPanel from "@/views/CardsPanel.vue";
+import CardView from "@/views/CardView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,6 +41,17 @@ const router = createRouter({
       name: 'admin',
       component: AdminPanel,
     },
+    {
+      path: '/cards-panel',
+      name: 'cards',
+      component: CardsPanel,
+    },
+    {
+      path: '/card/:imageCode',
+      name: 'card',
+      component: CardView,
+      props: true
+    }
   ],
 })
 

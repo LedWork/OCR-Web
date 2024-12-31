@@ -68,16 +68,16 @@ def get_all_cards():
 
 @admin_bp.route('/card/<image_code>', methods=['DELETE'])
 @admin_required
-def delete_card(code):
-    response, status  = delete_card_by_image_code(code)
+def delete_card(image_code):
+    response, status  = delete_card_by_image_code(image_code)
     return response, status
 
 
-@admin_bp.route('/card/{<image_code>}', methods=['GET'])
+@admin_bp.route('/card/<image_code>', methods=['GET'])
 @admin_required
-def get_card(code):
+def get_card(image_code):
     # to get image -> go to image blueprint
-    card = find_card_by_image_code(code)
+    card = find_card_by_image_code(image_code)
     parsed_card = parse_json(card)
     if not parsed_card:
         return jsonify({"error": "No cards available in the database."}), 400

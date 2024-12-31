@@ -1,12 +1,15 @@
 <script>
 import axios from "axios";
 import {adminCheckSession, changeOrientation, getCSRFToken} from "@/scripts/utils.js";
+import "@/assets/admin.css"
 
 export default {
   data() {
     return {
       uploadedJson: null,
       uploadedImages: [],
+      jsonFileName: "",
+      imageFileNames: [],
       admin: false,
       login: null,
       password: null,
@@ -16,6 +19,7 @@ export default {
     handleJSONUpload(event) {
       const file = event.target.files[0];
       if (file) {
+        this.jsonFileName = file.name;
         if (file.type === "application/json") {
           this.uploadedFile = file;
         }
@@ -49,6 +53,7 @@ export default {
                 }
               }
             );
+            console.log(response);
             alert("Upload successful.", response.data);
         } catch (error) {
           alert("Error during file processing or upload: ", error);
@@ -62,6 +67,7 @@ export default {
     handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
+        this.imageFileNames = Array.from(files).map((file) => file.name);
         this.uploadedImages = Array.from(files);
       }
       else {
@@ -97,6 +103,9 @@ export default {
     },
     goToInstruction() {
       this.$router.push({name: "instruction"});
+    },
+    goToCardsPanel() {
+      this.$router.push({name: "cards"});
     },
     async logout() {
       const response = await axios.post(
@@ -149,8 +158,9 @@ export default {
   <div class="wrapper">
     <div class="container" v-if="admin">
       <div class="button-container">
-        <button @click="goToInstruction" class="button">Back</button>
-        <button @click="logout" class="button logout-btn">Logout</button>
+        <button @click="goToInstruction" class="admin-button">Back</button>
+        <button @click="goToCardsPanel" class="admin-button">Cards Panel</button>
+        <button @click="logout" class="admin-button logout-btn">Logout</button>
       </div>
 
       <div class="uploads">
@@ -159,7 +169,7 @@ export default {
             Uploading JSON data
           </h1>
           <form @submit.prevent="uploadJSON" class="upload-form">
-            <label for="jsonUpload" class="button upload-label">Choose JSON file</label>
+            <label for="jsonUpload" class="admin-button upload-label">Choose JSON file</label>
             <input
               id="jsonUpload"
               type="file"
@@ -167,7 +177,8 @@ export default {
               @change="handleJSONUpload"
               class="file-input"
             />
-            <button type="submit" class="button upload-btn">Upload</button>
+            <p v-if="jsonFileName">Selected file: {{ jsonFileName }}</p>
+            <button type="submit" class="admin-button upload-btn">Upload</button>
           </form>
         </div>
 
@@ -176,7 +187,7 @@ export default {
             Uploading images
           </h1>
           <form @submit.prevent="uploadImages" class="upload-form">
-            <label for="imageUpload" class="button upload-label">Choose images</label>
+            <label for="imageUpload" class="admin-button upload-label">Choose images</label>
             <input
               id="imageUpload"
               type="file"
@@ -185,7 +196,12 @@ export default {
               multiple
               class="file-input"
             />
-            <button type="submit" class="button upload-btn">Upload</button>
+            <div v-if="imageFileNames.length > 0" class="images-names">
+              <ul>
+                <li v-for="(file, index) in imageFileNames" :key="index">{{ file }}</li>
+              </ul>
+            </div>
+            <button type="submit" class="admin-button upload-btn">Upload</button>
           </form>
         </div>
       </div>
@@ -201,7 +217,7 @@ export default {
             placeholder="Login"
             v-model="login"
           >
-          <button type="submit" class="button upload-btn">Upload</button>
+          <button type="submit" class="admin-button upload-btn">Upload</button>
         </form>
 
         <h3 v-if="password">
@@ -212,131 +228,3 @@ export default {
     </div>
   </div>
 </template>
-
-<style scoped>
-
-.container {
-  max-width: 90%;
-  margin: 20px auto;
-  padding: 50px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
-}
-
-.uploads {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 50px;
-}
-
-.button-container {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 10px;
-}
-
-.button {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.button:hover {
-  background-color: #0056b3;
-}
-
-.logout-btn {
-  background-color: #dc3545;
-}
-
-.logout-btn:hover {
-  background-color: #c82333;
-}
-
-.upload-container {
-  flex: 1 1 calc(50% - 50px);
-  box-sizing: border-box;
-
-  background-color: #f5f5f5;
-  border-radius: 5px;
-  margin-top: 20px;
-  padding: 30px;
-  text-align: center;
-}
-
-h1 {
-  white-space: nowrap;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.upload-form {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-}
-
-.upload-label {
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.file-input {
-  display: none;
-}
-
-.text-input {
-  margin-top: 20px;
-}
-
-.upload-btn {
-  margin-top: 5px;
-  background-color: #28a745;
-}
-
-.upload-btn:hover {
-  background-color: #218838;
-}
-
-@media (max-width: 768px) {
-  .container {
-    width: 60%;
-    margin: 10px auto;
-    padding: 20px;
-  }
-
-  .uploads {
-    flex-direction: column;
-  }
-
-  h1 {
-    font-size: 18px;
-  }
-
-  .upload-form {
-    gap: 5px;
-  }
-
-  .button {
-    font-size: 10px;
-    padding: 6px 12px;
-  }
-
-  .upload-container {
-    padding: 20px;
-    flex: 1 1 100%;
-  }
-
-  .text-input {
-    margin-top: 10px;
-    font-size: 10px;
-  }
-}
-</style>
