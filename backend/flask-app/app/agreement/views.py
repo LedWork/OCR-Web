@@ -3,40 +3,27 @@ from app.core.db import get_db
 from bson.objectid import ObjectId
 from datetime import datetime
 from app.auth.decorators import login_required
+from flask import jsonify
 
-agreement_bp = Blueprint('contract', __name__, url_prefix='/contract')
+agreement_bp = Blueprint("contract", __name__, url_prefix="/contract")
 
-@agreement_bp.route('/', methods=['GET', 'POST'])
+@agreement_bp.route("/", methods=["GET"])
 @login_required
-def contract():
-    # Ensure user is logged in
-    user_id = session.get('user')
+def get_contract():
+    """
+    Handles the GET request for the contract agreement route.
+    Renders the contract agreement form if the user hasn't agreed yet.
+    """
+    user_id = session.get("user")
     db = get_db()
-    user = db['users'].find_one({"_id": ObjectId(user_id)})
+    user = db["users"].find_one({"_id": ObjectId(user_id)})
 
     # Check if the user has already agreed to the contract
-    if user and user.get('agreed_to_contract'):
-        return redirect(url_for('home.home'))  # Redirect to home page
-
-    if request.method == 'POST':
-        agree = request.form.get('agree')
-        if agree == 'on':  # User agreed
-            db['users'].update_one(
-                {"_id": ObjectId(user_id)},
-                {
-                    "$set": {
-                        "agreed_to_contract": True,
-                        "contract_accepted_at": datetime.utcnow()
-                    }
-                }
-            )
-            return redirect(url_for('home.home'))
-
-        # If the user submits the form without agreeing
-        return "You must agree to the contract to use the app.", 403
+    if user and user.get("agreed_to_contract"):
+        return jsonify({"message": "You have already agreed to the contract."}), 200
 
     # Render the contract agreement form
-    return f'''
+    return f"""
         <h1>Contract Agreement</h1>
         <pre style="white-space: pre-wrap;">
         # Umowa o Zachowaniu Poufności w Procesie Ręcznej Weryfikacji Zdigitalizowanych Honorowych Kart Krwiodawców
@@ -86,4 +73,30 @@ def contract():
             <br><br>
             <button type="submit">Submit</button>
         </form>
-    '''
+    """
+
+@agreement_bp.route("/", methods=["POST"])
+@login_required
+def post_contract():
+    """
+    Handles the POST request for the contract agreement route.
+    Updates the user's agreement status if they agree to the contract.
+    """
+    user_id = session.get("user")
+    db = get_db()
+    agree = request.form.get("agree")
+
+    if agree == "on":  # User agreed
+        db["users"].update_one(
+            {"_id": ObjectId(user_id)},
+            {
+                "$set": {
+                    "agreed_to_contract": True,
+                    "contract_accepted_at": datetime.utcnow(),
+                }
+            },
+        )
+        return jsonify({"message": "Contract agreement successful."}), 200
+
+    # If the user submits the form without agreeing
+    return jsonify({"error": "You must agree to the contract to use the app."}), 403
