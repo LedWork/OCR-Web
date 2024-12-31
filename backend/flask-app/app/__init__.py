@@ -22,11 +22,13 @@ from app.admin.views import admin_bp
 from app.card.views import card_bp
 from app.auth.views import auth_bp
 from app.image.views import image_bp
+from app.agreement.views import agreement_bp
 
 app.register_blueprint(admin_bp, url_prefix="/admin")
 app.register_blueprint(card_bp, url_prefix="/card")
 app.register_blueprint(auth_bp, url_prefix="/auth")
 app.register_blueprint(image_bp, url_prefix='/image')
+app.register_blueprint(agreement_bp, url_prefix='/agreement')
 
 
 def get_routes():

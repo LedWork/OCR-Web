@@ -1,30 +1,41 @@
-from flask import Blueprint, request, session, redirect, url_for
+from flask import Blueprint, request, session, redirect, url_for, abort
 from app.core.db import get_db
 from bson.objectid import ObjectId
 from datetime import datetime
+from app.auth.decorators import login_required
 
-contract_bp = Blueprint('contract', __name__, url_prefix='/contract')
+agreement_bp = Blueprint('contract', __name__, url_prefix='/contract')
 
-@contract_bp.route('/', methods=['GET', 'POST'])
+@agreement_bp.route('/', methods=['GET', 'POST'])
+@login_required
 def contract():
+    # Ensure user is logged in
+    user_id = session.get('user')
+    db = get_db()
+    user = db['users'].find_one({"_id": ObjectId(user_id)})
+
+    # Check if the user has already agreed to the contract
+    if user and user.get('agreed_to_contract'):
+        return redirect(url_for('home.home'))  # Redirect to home page
+
     if request.method == 'POST':
         agree = request.form.get('agree')
         if agree == 'on':  # User agreed
-            user_id = session.get('user_id')
-            if user_id:
-                db = get_db()
-                db['users'].update_one(
-                    {"_id": ObjectId(user_id)},
-                    {
-                        "$set": {
-                            "agreed_to_contract": True,
-                            "contract_accepted_at": datetime.utcnow()
-                        }
+            db['users'].update_one(
+                {"_id": ObjectId(user_id)},
+                {
+                    "$set": {
+                        "agreed_to_contract": True,
+                        "contract_accepted_at": datetime.utcnow()
                     }
-                
-                return redirect(url_for('home.home'))
+                }
+            )
+            return redirect(url_for('home.home'))
+
+        # If the user submits the form without agreeing
         return "You must agree to the contract to use the app.", 403
 
+    # Render the contract agreement form
     return f'''
         <h1>Contract Agreement</h1>
         <pre style="white-space: pre-wrap;">
