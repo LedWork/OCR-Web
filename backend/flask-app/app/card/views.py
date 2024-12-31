@@ -11,8 +11,9 @@ from app.core.utils import parse_json
 card_bp = Blueprint("card", __name__)
 
 
-@login_required
+
 @card_bp.route("/correct", methods=["POST"])
+@login_required
 def receive_correct_card():
     user_id = session.get('user')
     data = request.get_json()

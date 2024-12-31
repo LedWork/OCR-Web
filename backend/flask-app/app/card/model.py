@@ -32,11 +32,11 @@ def load_card_to_db(json_data):
                 print(f"Card with _id {json_data.get('_id')}"
                       f" already exists. Skipping insertion.")
                 return {"error": f"Card with the same _id already"
-                                 f" exists: {json_data.get('_id')}, Skipped insertion"}, 200
+                                 f" exists: {json_data.get('_id')}, Skipped insertion"}, 400
 
-            mark_unchecked(json_data)
-            result = collection.insert_one(json_data)
-            print(f"Data inserted with ID: {result.inserted_id}")
+        mark_unchecked(json_data)
+        result = collection.insert_one(json_data)
+        print(f"Data inserted with ID: {result.inserted_id}")
 
         return {"message": "Card successfully uploaded."}, 200
     except Exception as e:
