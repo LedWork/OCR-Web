@@ -12,7 +12,7 @@ card_bp = Blueprint("card", __name__)
 
 
 
-@card_bp.route("/correct1", methods=["POST"])
+@card_bp.route("/correct", methods=["POST"])
 @login_required
 def receive_correct_card():
     user_id = session.get('user')

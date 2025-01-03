@@ -25,26 +25,27 @@ def load_card_to_db(json_data):
     db = get_db()
     collection = db['cards']
     try:
-        if json_data.get("_id"):
-            existing_card = collection.find_one({"_id": json_data.get("_id")})
+        if json_data.get("image_code"):
+            existing_card = collection.find_one({"image_code": json_data.get("image_code")})
 
             if existing_card:
                 if existing_card.get('correct', 0) > 0:
                     return {
-                        "error": f"Card with the same _id already exists: {json_data.get('_id')}"
-                                 f" and was checked already. Skipped insertion"}, 400
+                        "error": f"Card with the same image code already exists: "
+                                 f"and was checked already. Skipped insertion"}, 200
                 else:
                     db.collection.update_one(
-                        {'_id': existing_card['_id']},
+                        {'_id': ObjectId(existing_card['_id'])},
                         {'$set': json_data}
                     )
-                    return {"message": f"Card with _id {json_data.get('_id')} was updated with new data."}, 200
+                    return {"message": f"Card with _id {json_data.get('image_code')} was updated with new data."}, 200
 
-        mark_unchecked(json_data)
-        result = collection.insert_one(json_data)
-        print(f"Data inserted with ID: {result.inserted_id}")
-
-        return {"message": "Card successfully uploaded."}, 200
+            mark_unchecked(json_data)
+            result = collection.insert_one(json_data)
+            print(f"Data inserted with ID: {result.inserted_id}")
+            return {"message": "Card successfully uploaded."}, 200
+        else:
+            return {"error": "no image_code found"}, 400
     except Exception as e:
         print(f"An error occurred: {e}")
         return {"error": f"An error occurred: {str(e)}"}, 500

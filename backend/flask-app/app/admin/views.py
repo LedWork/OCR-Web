@@ -85,7 +85,7 @@ def get_card(image_code):
 
     return jsonify(parsed_card)
 
-@admin_bp.route('/correct1', methods=["POST"])
+@admin_bp.route('/correct', methods=["POST"])
 @admin_required
 def receive_correct_card():
     data = request.get_json()

@@ -46,7 +46,7 @@ export default {
       try {
         this.jsonData = parseGtParse(this.jsonData, true)
         this.cardData.gt_parse = this.jsonData
-        const response = await axios.post('/api/admin/correct1', this.cardData, {
+        const response = await axios.post('/api/admin/correct', this.cardData, {
           headers: {
             'X-CSRF-TOKEN': getCSRFToken(),
           },
