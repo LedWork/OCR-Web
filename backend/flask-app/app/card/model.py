@@ -88,13 +88,13 @@ def update_card(card_id, data):
         return False
 
 
-def increment_correct(card_id, user_id):
+def increment_correct(card_id, user_id, number):
     """Increment the 'correct' field for a card"""
     db = get_db()
     collection = db['cards']
     try:
         collection.update_one({"_id": ObjectId(card_id)},
-                              {"$inc": {"correct": 1},
+                              {"$inc": {"correct": number},
                                "$push": {"checked_by": user_id}})
         return True
     except Exception as e:

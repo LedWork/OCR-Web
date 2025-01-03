@@ -1,6 +1,6 @@
 <script>
 import axios from "axios";
-import {adminCheckSession, changeOrientation, getCSRFToken} from "@/scripts/utils.js";
+import {adminCheckSession, changeOrientation, getCSRFToken, logout} from "@/scripts/utils.js";
 import "@/assets/admin.css"
 
 export default {
@@ -16,6 +16,7 @@ export default {
     };
   },
   methods: {
+    logout,
     handleJSONUpload(event) {
       const file = event.target.files[0];
       if (file) {
@@ -107,21 +108,6 @@ export default {
     goToCardsPanel() {
       this.$router.push({name: "cards"});
     },
-    async logout() {
-      const response = await axios.post(
-        '/api/auth/break-session',
-        {},
-        {
-          headers: {
-            'X-CSRF-TOKEN': getCSRFToken(),
-          },
-        },
-      )
-
-      if (response.status === 200) {
-        window.location.reload();
-      }
-    },
     async addUser() {
       try {
         const response = await axios.post(
@@ -158,18 +144,18 @@ export default {
   <div class="wrapper">
     <div class="container" v-if="admin">
       <div class="button-container">
-        <button @click="goToInstruction" class="admin-button">Back</button>
-        <button @click="goToCardsPanel" class="admin-button">Cards Panel</button>
-        <button @click="logout" class="admin-button logout-btn">Logout</button>
+        <button @click="goToInstruction" class="admin-button">Wróć</button>
+        <button @click="goToCardsPanel" class="admin-button">Panel kart</button>
+        <button @click="logout" class="admin-button logout-btn">Wyloguj</button>
       </div>
 
       <div class="uploads">
         <div class="upload-container">
           <h1>
-            Uploading JSON data
+            Plik JSON
           </h1>
           <form @submit.prevent="uploadJSON" class="upload-form">
-            <label for="jsonUpload" class="admin-button upload-label">Choose JSON file</label>
+            <label for="jsonUpload" class="admin-button upload-label">Wybierz plik JSON</label>
             <input
               id="jsonUpload"
               type="file"
@@ -178,16 +164,16 @@ export default {
               class="file-input"
             />
             <p v-if="jsonFileName">Selected file: {{ jsonFileName }}</p>
-            <button type="submit" class="admin-button upload-btn">Upload</button>
+            <button type="submit" class="admin-button upload-btn">Wyślij</button>
           </form>
         </div>
 
         <div class="upload-container">
           <h1>
-            Uploading images
+            Zdjęcia
           </h1>
           <form @submit.prevent="uploadImages" class="upload-form">
-            <label for="imageUpload" class="admin-button upload-label">Choose images</label>
+            <label for="imageUpload" class="admin-button upload-label">Wybierz zdjęcia</label>
             <input
               id="imageUpload"
               type="file"
@@ -201,13 +187,13 @@ export default {
                 <li v-for="(file, index) in imageFileNames" :key="index">{{ file }}</li>
               </ul>
             </div>
-            <button type="submit" class="admin-button upload-btn">Upload</button>
+            <button type="submit" class="admin-button upload-btn">Wyślij</button>
           </form>
         </div>
       </div>
 
       <div class="upload-container">
-        <h1>Adding user</h1>
+        <h1>Dodawanie użytkownika</h1>
 
         <form @submit.prevent="addUser" class="upload-form">
           <input
@@ -217,11 +203,11 @@ export default {
             placeholder="Login"
             v-model="login"
           >
-          <button type="submit" class="admin-button upload-btn">Upload</button>
+          <button type="submit" class="admin-button upload-btn">Dodaj</button>
         </form>
 
         <h3 v-if="password">
-          Password: {{ password }}
+          Hasło: {{ password }}
         </h3>
       </div>
 

@@ -1,4 +1,5 @@
 import axios from "axios";
+import {globalState} from "@/scripts/store.js";
 
 export async function checkSession(router) {
   try {
@@ -37,13 +38,32 @@ export async function adminCheckSession(router = null) {
   }
 }
 
+export async function logout(reload=true) {
+  const response = await axios.post(
+    '/api/auth/break-session',
+    {},
+    {
+      headers: {
+        'X-CSRF-TOKEN': getCSRFToken(),
+      },
+    },
+  )
+
+  if (response.status === 200) {
+    globalState.isAuthenticated = false;
+    if (reload) {
+      window.location.reload();
+    }
+  }
+}
+
 export function getCSRFToken() {
   if (document.cookie && document.cookie !== '') {
     const cookies = document.cookie.split(';')
     for (let cookie of cookies) {
       cookie = cookie.trim()
       let [cookieName, cookieValue] = cookie.split('=')
-      if (cookieName == 'csrftoken') return cookieValue
+      if (cookieName === 'csrftoken') return cookieValue
     }
   }
   return null
@@ -74,25 +94,29 @@ export async function loadImage(imageCode) {
   }
 }
 
-export function parseGtParse(data, reverse=false) {
-  const fieldOrder1 = [
-    'Nazwisko',
-    'Imię',
-    'Data urodzenia',
-    'V st.',
-    'IV st.',
-    'III st.',
-    'II st.',
-    'I st.',
-  ]
-  const fieldOrder2 = ['Nr', 'Data', 'ZR', 'Ilość oddanej krwi']
+const fieldOrder1 = [
+  'Nazwisko',
+  'Imię',
+  'Data urodzenia',
+  'V st.',
+  'IV st.',
+  'III st.',
+  'II st.',
+  'I st.',
+]
+const fieldOrder2 =
+  ['Nr', 'Data', 'ZR', 'Ilość oddanej krwi']
+
+
+export function parseGtParse(data, reverse=false, fO=fieldOrder1) {
 
   const translations = {
-    Surname: 'Nazwisko',
-    'Name:': 'Imię',
+    'Surname': 'Nazwisko',
+    'Name': 'Imię',
     'Date of birth': 'Data urodzenia',
-    Date: 'Data',
+    'Date': 'Data',
     'Donated blood': 'Ilość oddanej krwi',
+    'Duplicate': 'Duplikat',
   }
 
   const formattedData = {}
@@ -107,7 +131,7 @@ export function parseGtParse(data, reverse=false) {
     const tKey = translationsMap[key] || key
 
     if (typeof value === 'object' && value !== null) {
-      formattedData[tKey] = parseGtParse(value, fieldOrder2)
+      formattedData[tKey] = parseGtParse(value, reverse, fieldOrder2)
     } else {
       formattedData[tKey] = value
     }
@@ -127,7 +151,7 @@ export function parseGtParse(data, reverse=false) {
     }
     return ordered
   }
-  return reorderFields(formattedData, fieldOrder1)
+  return reorderFields(formattedData, fO)
 }
 
 export async function loadJsonData(data) {

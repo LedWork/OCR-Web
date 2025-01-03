@@ -71,8 +71,8 @@ export default {
   <div class="wrapper">
     <div class="container" v-if="admin">
       <div class="button-container">
-        <button @click="goToAdminPanel" class="admin-button">Back</button>
-        <button @click="logout" class="admin-button logout-btn">Logout</button>
+        <button @click="goToAdminPanel" class="admin-button">Wróć</button>
+        <button @click="logout" class="admin-button logout-btn">Wyloguj</button>
       </div>
 
       <div class="image-table">
@@ -80,18 +80,18 @@ export default {
           <thead>
           <tr>
             <th>Image Code</th>
-            <th>View</th>
-            <th>Delete</th>
+            <th></th>
+            <th></th>
           </tr>
           </thead>
           <tbody>
           <tr v-for="(card, index) in cards" :key="index">
             <td>{{ card }}</td>
             <td>
-              <button @click="viewImage(card)">View</button>
+              <button @click="viewImage(card)">Pokaż</button>
             </td>
             <td>
-              <button @click="deleteImage(card)">Delete</button>
+              <button @click="deleteImage(card)">Usuń</button>
             </td>
           </tr>
           </tbody>

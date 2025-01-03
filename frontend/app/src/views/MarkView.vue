@@ -1,7 +1,14 @@
 <script>
 import DynamicForm from '@/components/DynamicForm.vue'
 import axios from 'axios'
-import { changeOrientation, checkSession, getCSRFToken, loadJsonData, loadImage, parseGtParse } from '@/scripts/utils.js'
+import {
+  changeOrientation,
+  checkSession,
+  getCSRFToken,
+  loadJsonData,
+  loadImage,
+  parseGtParse
+} from '@/scripts/utils.js'
 
 export default {
   components: {
@@ -30,12 +37,14 @@ export default {
         console.log(error)
       }
     },
+    updateJsonData(updatedValue) {
+      this.jsonData = updatedValue;
+    },
     async handleSubmit() {
       try {
         this.jsonData = parseGtParse(this.jsonData, true)
         this.cardData.gt_parse = this.jsonData
-        console.log(this.cardData)
-        const response = await axios.post('api/card/correct', this.cardData, {
+        const response = await axios.post('api/card/correct1', this.cardData, {
           headers: {
             'X-CSRF-TOKEN': getCSRFToken(),
           },
@@ -50,6 +59,9 @@ export default {
         console.error('Error sending data:', error)
         alert('There was an error sending your data.')
       }
+    },
+    goToThanks() {
+      this.$router.push({name: 'thanks'})
     },
   },
   async mounted() {
@@ -70,9 +82,13 @@ export default {
     </div>
     <div class="form-wrapper vertical">
       <form @submit.prevent="handleSubmit" class="form">
-        <DynamicForm :value="jsonData" @update:value="jsonData"/>
-        <button type="submit" class="button">WYŚLIJ</button>
+        <DynamicForm :value="jsonData" @update:value="updateJsonData" />
+        <div style="text-align: center">
+          <button type="submit" class="button upload-btn">NASTĘPNA KARTA</button>
+        </div>
       </form>
+
+      <button @click="goToThanks" class="button">ZAKOŃCZ SPRAWDZANIE</button>
     </div>
   </div>
 </template>

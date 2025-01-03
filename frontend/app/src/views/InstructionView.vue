@@ -10,7 +10,10 @@ export default {
   async mounted() {
     this.loading = await checkSession(this.$router);
     this.admin = await adminCheckSession();
-    changeOrientation();
+    window.addEventListener('resize', changeOrientation)
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', changeOrientation)
   },
   methods: {
     goToMarking() {
@@ -28,9 +31,15 @@ export default {
     <div class="text-block">
       <p class="title">Instrukcja</p>
       <p class="content">
-        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quas earum dignissimos ipsum
-        assumenda ratione explicabo consequatur quo cupiditate mollitia quibusdam eveniet eum,
-        tempore fugit. Magni itaque doloremque ea! Distinctio, possimus.
+        Po kliknięciu przycisku <b>"Przejdź dalej"</b> po lewej stronie zobaczysz zdjęcie karty, a po prawej formularz
+        z danymi odczytanymi ze zdjęcia. Nad każdym polem formularza znajduje się etykieta, która odpowiada etykiecie
+        na zdjęciu karty. Pola w większości przypadków będą w takiej samej kolejności jak na zdjęciu.
+        <br>Jeśli tekst w polu jest zgodny z tym, co widać na zdjęciu, przejdź do kolejnego pola. Jeśli tekst się nie
+        zgadza, popraw wpisz w polu poprawny tekst. Po potwierdzeniu wszystkich pól kliknij przycisk
+        <b>"Następna karta"</b>, aby przejść do kolejnej karty do wypełnienia!
+        <br>Jeśli chcesz zakończyć sprawdzanie, kliknij przycisk <b>"Zakończ sprawdzanie"</b>.
+        <br><b>WAŻNE!</b> Po kliknięciu tego
+        przycisku sprawdzana karta nie zostanie wysłana do systemu!
       </p>
     </div>
     <div class="button" @click="goToMarking">PRZEJDŹ DALEJ</div>

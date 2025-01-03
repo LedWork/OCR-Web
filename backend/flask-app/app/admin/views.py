@@ -5,6 +5,7 @@ from app.image.model import load_images
 from app.admin.model import create_user, user_exists
 from app.auth.decorators import admin_required
 from app.core.utils import parse_json
+from app.card.model import (get_card_by_id, update_card, increment_correct)
 
 admin_bp = Blueprint('admin', __name__)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -83,6 +84,32 @@ def get_card(image_code):
         return jsonify({"error": "No cards available in the database."}), 400
 
     return jsonify(parsed_card)
+
+@admin_bp.route('/correct1', methods=["POST"])
+@admin_required
+def receive_correct_card():
+    data = request.get_json()
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 400
+
+    card_id = data.get('_id')
+    if not card_id:
+        return jsonify({"error": "No card ID provided"}), 400
+
+    card = get_card_by_id(card_id)
+    if not card:
+        return jsonify({"error": "Card not found"}), 404
+
+    data.pop("correct", None)
+    data.pop("_id", None)
+    data.pop("checked_by", None)
+
+    if update_card(card_id, data):
+        increment_correct(card_id, 'admin', 3)
+        return jsonify({"message": "Card marked as correct and updated."}), 200
+    else:
+        return jsonify({"error": "Error updating card."}), 500
 
 
 # TEMPORARY FOR TESTING, WILL BE DELETED IN PROD VERSION
