@@ -11,6 +11,7 @@ from app.core.utils import parse_json
 card_bp = Blueprint("card", __name__)
 
 
+
 @card_bp.route("/correct", methods=["POST"])
 @login_required
 def receive_correct_card():
@@ -40,7 +41,7 @@ def receive_correct_card():
             data["correct"] = 0
 
     if update_card(card_id, data):
-        increment_correct(card_id, user_id)
+        increment_correct(card_id, user_id, 1)
         return jsonify({"message": "Card marked as correct and updated."}), 200
     else:
         return jsonify({"error": "Error updating card."}), 500

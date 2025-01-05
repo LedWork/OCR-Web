@@ -1,0 +1,152 @@
+@import './font.css';
+
+b {
+  font-weight: bold;
+}
+
+.wrapper {
+  font-family: 'Red Hat Display', sans-serif;
+  font-weight: 400;
+  width: 100%;
+  padding: 20px 20px;
+  height: calc(100% - 60px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+.vertical {
+  flex-direction: column;
+}
+.horizontal {
+  flex-direction: row;
+}
+.text-block {
+  width: 60%;
+  aspect-ratio: 1/1;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  background-color: #dbdbdb;
+  border-radius: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 25px;
+  margin-bottom: 20px;
+}
+.title {
+  font-size: 30px;
+  margin-bottom: 30px;
+}
+.content {
+  font-size: 20px;
+  text-align: justify;
+}
+.button {
+  background-color: #d13439;
+  width: auto;
+  margin: 10px;
+  padding: 20px;
+  font-size: 25px;
+  border-radius: 15px;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  color: #dbdbdb;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+
+.input {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.text-input {
+  width: 100%;
+  height: 40px;
+  font-family: 'Red Hat Display', sans-serif;
+  background-color: #ededed;
+  border: 2px solid black;
+  border-radius: 10px;
+  font-size: 20px;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.form {
+  width: 80%;
+}
+
+.inputs-row {
+  display: block;
+}
+
+.caption {
+  margin-top: 5px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+}
+
+.wrapper {
+  padding-top: 20px;
+}
+
+.card-wrapper {
+  width: 100%;
+  height: auto;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+}
+
+.card-wrapper img {
+  max-width: 80%;
+  max-height: 80%;
+  display: block;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.form-wrapper {
+  width: 100%;
+  height: 100%;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  background-color: #dbdbdb;
+  overflow-y: auto;
+  display: flex;
+  justify-content: flex-start;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  margin: 20px;
+}
+
+@media (min-width: 1024px) {
+  .text-block {
+    width: 25%;
+    padding: 30px;
+  }
+  .title {
+    font-size: 25px;
+  }
+  .content {
+    font-size: 18px;
+  }
+  .button {
+    font-size: 25px;
+  }
+  .inputs-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+  }
+  .caption {
+    font-size: 25px;
+    margin-top: 10px;
+  }
+}

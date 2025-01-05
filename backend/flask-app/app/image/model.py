@@ -59,3 +59,19 @@ def get_image(image_code):
 
     image_data = list(collection.find({"_id": image_code}))
     return image_data
+
+
+def delete_image(image_code):
+    db = get_db()
+    collection = db['images']
+
+    try:
+        result = collection.delete_one({"_id": image_code})
+        if result.deleted_count == 1:
+            return {"message": "Image successfully deleted."}, 200
+        else:
+            return {"error": "Image not found."}, 404
+    except Exception as e:
+        print(f"Error deleting image: {e}")
+        return {"error": f"An error occurred: {str(e)}"}, 500
+
