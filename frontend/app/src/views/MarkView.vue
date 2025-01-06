@@ -84,11 +84,11 @@ export default {
       <form @submit.prevent="handleSubmit" class="form">
         <DynamicForm :value="jsonData" @update:value="updateJsonData" />
         <div style="text-align: center">
-          <button type="submit" class="button upload-btn">NASTĘPNA KARTA</button>
+          <button type="submit" class="button upload-btn">WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</button>
         </div>
       </form>
 
-      <button @click="goToThanks" class="button">ZAKOŃCZ SPRAWDZANIE</button>
+      <button @click="goToThanks" class="button">ZAKOŃCZ SPRAWDZANIE (bez wysyłania obecnej karty)</button>
     </div>
   </div>
 </template>
