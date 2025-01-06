@@ -31,15 +31,18 @@ export default {
     <div class="text-block">
       <p class="title">Instrukcja</p>
       <p class="content">
-        Po kliknięciu przycisku <b>"Przejdź dalej"</b> po lewej stronie zobaczysz zdjęcie karty, a po prawej formularz
-        z danymi odczytanymi ze zdjęcia. Nad każdym polem formularza znajduje się etykieta, która odpowiada etykiecie
-        na zdjęciu karty. Pola w większości przypadków będą w takiej samej kolejności jak na zdjęciu.
-        <br>Jeśli tekst w polu jest zgodny z tym, co widać na zdjęciu, przejdź do kolejnego pola. Jeśli tekst się nie
-        zgadza, popraw wpisz w polu poprawny tekst. Po potwierdzeniu wszystkich pól kliknij przycisk
-        <b>"Następna karta"</b>, aby przejść do kolejnej karty do wypełnienia!
-        <br>Jeśli chcesz zakończyć sprawdzanie, kliknij przycisk <b>"Zakończ sprawdzanie"</b>.
-        <br><b>WAŻNE!</b> Po kliknięciu tego
-        przycisku sprawdzana karta nie zostanie wysłana do systemu!
+        Witamy w systemie digitalizacji kart Zasłużonych Honorowych Dawców Krwi Polskiego Czerwonego Krzyża.
+        <br><br>
+        Po kliknięciu przycisku <b>"Przejdź dalej"</b> zostanie wyświetlony skan karty Zasłużonego Honorowego Dawcy Krwi 
+        wraz z formularzem zawierającym automatycznie odczytane dane. Każde pole formularza jest oznaczone etykietą odpowiadającą oznaczeniom na karcie, 
+        zachowując podobną kolejność jak w oryginale.
+        <br><br>
+        Prosimy o weryfikację poprawności odczytanych danych we wszystkich polach. W przypadku błędów należy wprowadzić poprawną wartość.
+        Po zweryfikowaniu wszystkich pól, należy kliknąć przycisk <b>"Następna karta"</b>, aby wysłać kartę do systemu i przejść do kolejnego dokumentu.
+        <br><br>
+        Aby przerwać proces weryfikacji, należy użyć przycisku <b>"Zakończ sprawdzanie".</b>.
+        <br><br>
+        <b>Uwaga:</b> Użycie przycisku "Zakończ sprawdzanie" spowoduje, że aktualnie weryfikowana karta nie zostanie zapisana w systemie.
       </p>
     </div>
     <div class="button" @click="goToMarking">PRZEJDŹ DALEJ</div>
