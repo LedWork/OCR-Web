@@ -14,7 +14,7 @@ export default {
       // this.admin = await adminCheckSession();
 
       // Check if the user has already agreed to the contract
-      const response = await fetch("/api/agreement/", { method: "GET" });
+      const response = await fetch("/api/agreement/contract", { method: "GET" });
 
       if (response.ok) {
         const data = await response.json();
@@ -37,7 +37,7 @@ export default {
   methods: {
     async submitAgreement() {
       try {
-        const response = await fetch("/api/agreement/", {
+        const response = await fetch("/api/agreement/contract", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
