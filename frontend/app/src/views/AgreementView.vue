@@ -8,18 +8,58 @@ export default {
     }
   },
   async mounted() {
-    this.loading = await checkSession(this.$router);
-    this.admin = await adminCheckSession();
-    window.addEventListener('resize', changeOrientation)
+    try {
+      this.loading = await checkSession(this.$router);
+      // commenting this out temporarily to avoid errors
+      // this.admin = await adminCheckSession();
+
+      // Check if the user has already agreed to the contract
+      const response = await fetch("/api/agreement/", { method: "GET" });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.message === "You have already agreed to the contract.") {
+          // Redirect to the instruction page
+          this.$router.push({ name: "instruction" });
+          return;
+        }
+      }
+
+      window.addEventListener("resize", changeOrientation);
+    } catch (error) {
+      console.error("An error occurred while checking agreement status:", error);
+      alert("An error occurred. Please reload the page or try again later.");
+    }
   },
   beforeUnmount() {
     window.removeEventListener('resize', changeOrientation)
   },
   methods: {
-    goToInstruction() {
-      this.$router.push({name: 'instruction'})
-    },
-  },
+    async submitAgreement() {
+      try {
+        const response = await fetch("/api/agreement/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ agree: "on" }) // Send 'agree' as JSON
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data.message); // Optional: Log the success message
+          this.$router.push({ name: "instruction" }); // Navigate to instruction page
+        } else {
+          const errorData = await response.json();
+          console.error(errorData.error); // Log the error message
+          alert(errorData.error); // Show an alert with the error
+        }
+      } catch (error) {
+        console.error("An error occurred while submitting the agreement:", error);
+        alert("An error occurred. Please try again.");
+      }
+    }
+  }
 }
 </script>
 <template>
@@ -70,7 +110,7 @@ export default {
         Podpisując tę umowę, Weryfikator potwierdza zrozumienie i akceptację opisanych powyżej obowiązków i zobowiązań.
       </p>
     </div>
-    <div class="button" @click="goToInstruction">I AGREE</div>
+    <div class="button" @click="submitAgreement">I AGREE</div>
   </div>
 </template>
 <style></style>

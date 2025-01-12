@@ -16,6 +16,29 @@ export default {
     }
   },
   methods: {
+    async goToAgreement() {
+      try {
+        const response = await axios.post(
+          '/api/auth/login',
+          {
+            login: this.login,
+            password: this.password,
+          },
+          {
+            headers: {
+              'X-CSRF-TOKEN': getCSRFToken(),
+            },
+          },
+        )
+        if (response.status === 200) {
+          globalState.isAuthenticated = true
+          this.$router.push({name: 'agreement'})
+        }
+      } catch(error) {
+        console.error(error)
+        this.error = error.response.data.message
+      }
+    },
     async goToInstruction() {
       try {
         const response = await axios.post(
@@ -80,7 +103,7 @@ export default {
       <p v-if="error" class="error">{{ error }}</p>
 
       <div class="btn-wrapper">
-        <div class="button" @click="goToInstruction">ZALOGUJ SIĘ</div>
+        <div class="button" @click="goToAgreement">ZALOGUJ SIĘ</div>
       </div>
 
       <div class="btn-wrapper">

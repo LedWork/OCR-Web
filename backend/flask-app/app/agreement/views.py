@@ -8,27 +8,27 @@ from flask import jsonify
 agreement_bp = Blueprint("agreement", __name__)
 
 
-@agreement_bp.route("/agreement", methods=["GET"])
+@agreement_bp.route("/", methods=["GET"])
 @login_required
 def get_contract():
     """
     Handles the GET request for the contract agreement route.
-    Renders the contract agreement form if the user hasn't agreed yet.
+    Checks if the user has already agreed to the contract.
     """
     user_id = session.get("user")
+    if not user_id:
+        return jsonify({"error": "User ID is missing from session"}), 400
+
     db = get_db()
     user = db["users"].find_one({"_id": ObjectId(user_id)})
 
-    # Check if the user has already agreed to the contract
     if user and user.get("agreed_to_contract"):
-        # For testing purposes
-        # return redirect(url_for("instruction"))
         return jsonify({"message": "You have already agreed to the contract."}), 200
 
-    # Render the contract agreement form
+    return jsonify({"message": "You have not agreed to the contract yet."}), 200
 
 
-@agreement_bp.route("/agreement", methods=["POST"])
+@agreement_bp.route("/", methods=["POST"])
 @login_required
 def post_contract():
     """
@@ -37,7 +37,8 @@ def post_contract():
     """
     user_id = session.get("user")
     db = get_db()
-    agree = request.form.get("agree")
+    data = request.get_json()  # Expect JSON payload
+    agree = data.get("agree")
 
     if agree == "on":  # User agreed
         db["users"].update_one(
@@ -51,5 +52,4 @@ def post_contract():
         )
         return jsonify({"message": "Contract agreement successful."}), 200
 
-    # If the user submits the form without agreeing
     return jsonify({"error": "You must agree to the contract to use the app."}), 403
