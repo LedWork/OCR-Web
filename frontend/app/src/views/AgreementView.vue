@@ -1,5 +1,6 @@
 <script>
 import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
+import {getCSRFToken} from "@/scripts/utils.js";
 export default {
   data() {
     return {
@@ -40,7 +41,7 @@ export default {
         const response = await fetch("/api/agreement/contract", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            'X-CSRF-TOKEN': getCSRFToken(),
           },
           body: JSON.stringify({ agree: "on" }) // Send 'agree' as JSON
         });

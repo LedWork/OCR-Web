@@ -62,6 +62,10 @@ def post_contract():
     collection = db["users"]
 
     data = request.get_json()  # Expect JSON payload
+
+    if not data:
+        return jsonify({"error": "No data provided"}), 407
+
     agree = data.get("agree")
 
     if agree == "on":  # User agreed
