@@ -1,8 +1,8 @@
-import { createApp } from 'vue'
+import { createApp } from 'vue';
 import { BootstrapVue3 } from 'bootstrap-vue-3';
-import App from './App.vue'
-import router from './router'
-import './assets/scss/custom.scss';
+import App from './App.vue';
+import router from './router';
+import './assets/scss/main.scss';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const app = createApp(App)

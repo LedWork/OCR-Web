@@ -143,7 +143,7 @@ export default {
         </div>
         <div class="col-12 col-md mb-2 mb-md-0 d-flex justify-content-center">
           <button @click="goToCardsPanel"
-                  class="btn btn-secondary btn-lg w-100"
+                  class="btn btn-info text-white btn-lg w-100"
                   style="width: auto; max-width: 300px;">
             Panel kart</button>
         </div>

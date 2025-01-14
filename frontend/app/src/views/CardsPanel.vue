@@ -81,7 +81,7 @@ export default {
         <tr v-for="(card, index) in cards" :key="index">
           <td>{{ card }}</td>
           <td class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-secondary btn-sm" @click="viewImage(card)">Pokaż</button>
+            <button class="btn btn-info text-white btn-sm" @click="viewImage(card)">Pokaż</button>
             <button class="btn btn-danger btn-sm" @click="deleteImage(card)">Usuń</button>
           </td>
         </tr>

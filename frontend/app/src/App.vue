@@ -3,7 +3,7 @@
     <nav class="navbar navbar-light bg-light fixed-top">
       <div class="container-fluid justify-content-center">
         <img
-          src="@/static/pck-logo.png"
+          src="../public/pck-logo.png"
           alt="PCK Logo"
           class="navbar-logo me-2"
         />

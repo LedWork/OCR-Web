@@ -79,7 +79,7 @@ export default {
 
         <div class="align-items-center d-flex flex-column justify-content-between">
           <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToInstruction">ZALOGUJ SIĘ</button>
-          <button class="btn btn-lg btn-primary w-50 mb-3" @click="makeAdmin">CREATE ADMIN </button>
+          <button class="btn btn-lg btn-info text-white w-50 mb-3" @click="makeAdmin">CREATE ADMIN </button>
         </div>
       </div>
     </div>
