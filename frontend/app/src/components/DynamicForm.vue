@@ -17,14 +17,19 @@ export default {
     },
     updateNestedValue(key, updatedValue) {
       this.$emit('update:value', { ...this.value, [key]: updatedValue })
-    },
-  },
+    }
+  }
 }
 </script>
 
 <template>
-  <div v-for="(value, key) in value" :key="key">
-    <p class="caption">{{ key }}:</p>
+  <div v-for="(value, key) in value" :key="key" class="w-100">
+
+    <hr v-if="!$parent || $parent.$options.name !== 'DynamicForm'" />
+
+    <label class="form-label">
+      {{ key }}:
+    </label>
 
     <div v-if="typeof value === 'object' && value !== null" class="inputs-row">
       <DynamicForm :value="value" @update:value="updateNestedValue(key, $event)" />
@@ -38,7 +43,7 @@ export default {
       :name="key"
       :readonly="readonly"
       type="text"
-      class="text-input"
+      class="form-control"
     />
   </div>
 </template>

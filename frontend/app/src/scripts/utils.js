@@ -69,21 +69,11 @@ export function getCSRFToken() {
   return null
 }
 
-export function changeOrientation() {
-  if (window.screen.width > 768) {
-    document.querySelector('.wrapper').classList.add('horizontal')
-    document.querySelector('.wrapper').classList.remove('vertical')
-  } else {
-    document.querySelector('.wrapper').classList.remove('horizontal')
-    document.querySelector('.wrapper').classList.add('vertical')
-  }
-}
-
 export async function loadImage(imageCode) {
   try {
-    console.log(imageCode);
+    //console.log(imageCode);
     const response = await axios.get(`/api/image/${imageCode}`)
-    console.log(response)
+    //console.log(response)
     if (response.data[0].photo) {
       return `data:image/jpeg;base64,${response.data[0].photo}`
     } else {

@@ -15,4 +15,12 @@ export default defineConfig({
   build: {
     assetsDir: 'static',
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        silenceDeprecations: ['mixed-decls', 'color-functions', 'global-builtin', 'import']
+      }
+    }
+  },
 })

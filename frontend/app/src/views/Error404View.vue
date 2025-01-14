@@ -1,5 +1,5 @@
 <script>
-import {changeOrientation, checkSession} from "@/scripts/utils.js";
+import {checkSession} from "@/scripts/utils.js";
 
 export default {
   data() {
@@ -9,7 +9,6 @@ export default {
   },
   async mounted() {
     this.loading = await checkSession();
-    changeOrientation();
   }
 }
 </script>

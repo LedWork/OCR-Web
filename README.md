@@ -2,7 +2,7 @@
 
 ## How to test?
 ### 1.
-Go to the ```frontend/app``` and run ```./build.sh```. This will create a ```dist``` folder in ```backend/flask-app``` which is required.
+Go to the ```frontend/app``` and run ```./build.sh```. This will create a ```dist``` folder in ```backend/flask-app/app``` which is required.
 ### 2. 
 Go to the ```backend/flask-app``` and run ```docker-compose up --build``` to create the docker container.
 ### 3. 
