@@ -1,6 +1,6 @@
 <script>
 import axios from "axios";
-import {adminCheckSession, changeOrientation, getCSRFToken} from "@/scripts/utils.js";
+import {adminCheckSession, getCSRFToken} from "@/scripts/utils.js";
 
 export default {
   data() {
@@ -58,45 +58,35 @@ export default {
   async mounted(){
     this.admin = await adminCheckSession(this.$router);
     await this.fetchCards();
-    changeOrientation();
-    window.addEventListener("resize", changeOrientation);
   },
-  beforeunload() {
-    window.removeEventListener("resize", changeOrientation);
-  }
 }
 </script>
 
 <template>
-  <div class="wrapper">
-    <div class="container" v-if="admin">
-      <div class="button-container">
-        <button @click="goToAdminPanel" class="admin-button">Wróć</button>
-        <button @click="logout" class="admin-button logout-btn">Wyloguj</button>
-      </div>
+  <div class="container mt-5" v-if="admin">
+    <div class="d-flex justify-content-between mb-4">
+      <button @click="goToAdminPanel" class="btn btn-danger btn-lg">Wróć</button>
+      <button @click="logout" class="btn btn-danger btn-lg">Wyloguj</button>
+    </div>
 
-      <div class="image-table">
-        <table>
-          <thead>
-          <tr>
-            <th>Image Code</th>
-            <th></th>
-            <th></th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="(card, index) in cards" :key="index">
-            <td>{{ card }}</td>
-            <td>
-              <button @click="viewImage(card)">Pokaż</button>
-            </td>
-            <td>
-              <button @click="deleteImage(card)">Usuń</button>
-            </td>
-          </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="table-responsive w-75 mx-auto">
+      <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+        <tr class="text-center">
+          <th class="w-75">Image Code</th>
+          <th class="w-75">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(card, index) in cards" :key="index">
+          <td>{{ card }}</td>
+          <td class="d-flex gap-2 justify-content-center">
+            <button class="btn btn-secondary btn-sm" @click="viewImage(card)">Pokaż</button>
+            <button class="btn btn-danger btn-sm" @click="deleteImage(card)">Usuń</button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>

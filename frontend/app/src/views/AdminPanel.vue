@@ -1,7 +1,6 @@
 <script>
 import axios from "axios";
-import {adminCheckSession, changeOrientation, getCSRFToken, logout} from "@/scripts/utils.js";
-import "@/assets/admin.css"
+import {adminCheckSession, getCSRFToken, logout} from "@/scripts/utils.js";
 
 export default {
   data() {
@@ -10,7 +9,7 @@ export default {
       uploadedImages: [],
       jsonFileName: "",
       imageFileNames: [],
-      admin: false,
+      admin: true,
       login: null,
       password: null,
     };
@@ -132,81 +131,87 @@ export default {
   },
   async mounted(){
     this.admin = await adminCheckSession(this.$router);
-    changeOrientation();
-    window.addEventListener("resize", changeOrientation);
-  },
-  beforeunload() {
-    window.removeEventListener("resize", changeOrientation);
   }
 }
 </script>
 <template>
-  <div class="wrapper">
-    <div class="container" v-if="admin">
-      <div class="button-container">
-        <button @click="goToInstruction" class="admin-button">Wróć</button>
-        <button @click="goToCardsPanel" class="admin-button">Panel kart</button>
-        <button @click="logout" class="admin-button logout-btn">Wyloguj</button>
+  <div class="d-flex flex-column justify-content-center align-items-center">
+    <div class="card border-light-subtle p-3 mt-5 w-75 h-75" v-if="admin">
+      <div class="row mx-3 mb-3">
+        <div class="col-12 col-md-auto mb-2 mb-md-0">
+          <button @click="goToInstruction" class="btn btn-danger btn-lg w-100">Wróć</button>
+        </div>
+        <div class="col-12 col-md mb-2 mb-md-0 d-flex justify-content-center">
+          <button @click="goToCardsPanel"
+                  class="btn btn-secondary btn-lg w-100"
+                  style="width: auto; max-width: 300px;">
+            Panel kart</button>
+        </div>
+        <div class="col-12 col-md-auto">
+          <button @click="logout" class="btn btn-danger btn-lg w-100">Wyloguj</button>
+        </div>
       </div>
 
-      <div class="uploads">
-        <div class="upload-container">
-          <h1>
-            Plik JSON
-          </h1>
-          <form @submit.prevent="uploadJSON" class="upload-form">
-            <label for="jsonUpload" class="admin-button upload-label">Wybierz plik JSON</label>
+      <div class="d-flex flex-column flex-md-row mt-5 mb-5 mx-4 gap-3">
+        <div class="col-12 col-md-6">
+          <h1 class="text-center mb-2">Plik JSON</h1>
+          <form @submit.prevent="uploadJSON">
+            <label for="jsonUpload" class="text-center">Wybierz plik JSON</label>
             <input
               id="jsonUpload"
               type="file"
               accept=".json"
               @change="handleJSONUpload"
-              class="file-input"
+              class="form-control"
             />
             <p v-if="jsonFileName">Selected file: {{ jsonFileName }}</p>
-            <button type="submit" class="admin-button upload-btn">Wyślij</button>
+            <div class="d-flex mt-3 justify-content-center align-items-center">
+              <button type="submit" class="btn btn-success btn-lg w-100 w-md-25">Wyślij</button>
+            </div>
           </form>
         </div>
 
-        <div class="upload-container">
-          <h1>
-            Zdjęcia
-          </h1>
-          <form @submit.prevent="uploadImages" class="upload-form">
-            <label for="imageUpload" class="admin-button upload-label">Wybierz zdjęcia</label>
+        <div class="col-12 col-md-6">
+          <h1 class="text-center mb-2">Zdjęcia</h1>
+          <form @submit.prevent="uploadImages">
+            <label for="imageUpload" class="text-center">Wybierz zdjęcia</label>
             <input
               id="imageUpload"
               type="file"
               accept="image/*"
               @change="handleImageUpload"
               multiple
-              class="file-input"
+              class="form-control"
             />
-            <div v-if="imageFileNames.length > 0" class="images-names">
-              <ul>
+            <div v-if="imageFileNames.length > 0" class="bg-secondary rounded mt-3 text-white p-2" style="max-height: 100px; overflow-y: auto;">
+              <ul class="mb-0">
                 <li v-for="(file, index) in imageFileNames" :key="index">{{ file }}</li>
               </ul>
             </div>
-            <button type="submit" class="admin-button upload-btn">Wyślij</button>
+            <div class="d-flex mt-3 justify-content-center align-items-center">
+              <button type="submit" class="btn btn-success btn-lg w-100 w-md-25">Wyślij</button>
+            </div>
           </form>
         </div>
       </div>
 
-      <div class="upload-container">
-        <h1>Dodawanie użytkownika</h1>
+      <div class="d-flex justify-content-center align-items-center flex-column mt-3 mb-4">
+        <h1 class="text-center">Dodawanie użytkownika</h1>
 
-        <form @submit.prevent="addUser" class="upload-form">
-          <input
-            id="userUpload"
-            type="text"
-            class="text-input"
-            placeholder="Login"
-            v-model="login"
-          >
-          <button type="submit" class="admin-button upload-btn">Dodaj</button>
+        <form @submit.prevent="addUser" class="row w-100 d-flex justify-content-center">
+          <div class="d-flex flex-column flex-md-row col col-md-6 mx-auto gap-2">
+            <input
+              id="userUpload"
+              type="text"
+              class="form-control"
+              placeholder="Login"
+              v-model="login"
+            >
+            <button type="submit" class="btn btn-success">Dodaj</button>
+          </div>
         </form>
 
-        <h3 v-if="password">
+        <h3 v-if="password" class="text-center mt-3">
           Hasło: {{ password }}
         </h3>
       </div>

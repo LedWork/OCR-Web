@@ -1,5 +1,5 @@
 <script>
-import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
+import {adminCheckSession, checkSession} from "@/scripts/utils.js";
 export default {
   data() {
     return {
@@ -10,10 +10,6 @@ export default {
   async mounted() {
     this.loading = await checkSession(this.$router);
     this.admin = await adminCheckSession();
-    window.addEventListener('resize', changeOrientation)
-  },
-  beforeUnmount() {
-    window.removeEventListener('resize', changeOrientation)
   },
   methods: {
     goToMarking() {
@@ -26,23 +22,66 @@ export default {
 }
 </script>
 <template>
-  <div class="wrapper vertical" v-if="!loading">
-    <div v-if="admin" class="button" @click="goToAdmin">ADMIN PANEL</div>
-    <div class="text-block">
-      <p class="title">Instrukcja</p>
-      <p class="content">
-        Po kliknięciu przycisku <b>"Przejdź dalej"</b> po lewej stronie zobaczysz zdjęcie karty, a po prawej formularz
-        z danymi odczytanymi ze zdjęcia. Nad każdym polem formularza znajduje się etykieta, która odpowiada etykiecie
-        na zdjęciu karty. Pola w większości przypadków będą w takiej samej kolejności jak na zdjęciu.
-        <br>Jeśli tekst w polu jest zgodny z tym, co widać na zdjęciu, przejdź do kolejnego pola. Jeśli tekst się nie
-        zgadza, popraw wpisz w polu poprawny tekst. Po potwierdzeniu wszystkich pól kliknij przycisk
-        <b>"Następna karta"</b>, aby przejść do kolejnej karty do wypełnienia!
-        <br>Jeśli chcesz zakończyć sprawdzanie, kliknij przycisk <b>"Zakończ sprawdzanie"</b>.
-        <br><b>WAŻNE!</b> Po kliknięciu tego
-        przycisku sprawdzana karta nie zostanie wysłana do systemu!
-      </p>
+  <div id="ins-main"
+       class="d-flex flex-column justify-content-between align-items-center mt-1 mt-md-4"
+       v-if="!loading">
+
+    <div class="m-3 align-items-center w-50 d-flex justify-content-center">
+      <button v-if="admin" class="btn btn-lg w-100 btn-secondary" @click="goToAdmin">ADMIN PANEL</button>
     </div>
-    <div class="button" @click="goToMarking">PRZEJDŹ DALEJ</div>
+
+    <div class="card border-light-subtle mb-md-5 mb-1"
+         style="max-width: 70%; width:auto; max-height:70%; height:auto; overflow-y: auto !important;">
+      <div class="card-body">
+        <h1 class="text-center">Instrukcja</h1>
+        <p class="text-justify fs-6 text-md-f">
+          Po kliknięciu przycisku <b>"Przejdź dalej"</b> po lewej stronie zobaczysz zdjęcie karty, a po prawej formularz
+          z danymi odczytanymi ze zdjęcia. Nad każdym polem formularza znajduje się etykieta, która odpowiada etykiecie
+          na zdjęciu karty. Pola w większości przypadków będą w takiej samej kolejności jak na zdjęciu.
+          <br>Jeśli tekst w polu jest zgodny z tym, co widać na zdjęciu, przejdź do kolejnego pola. Jeśli tekst się nie
+          zgadza, popraw wpisz w polu poprawny tekst. Po potwierdzeniu wszystkich pól kliknij przycisk
+          <b>"Następna karta"</b>, aby przejść do kolejnej karty do wypełnienia!
+          <br>Jeśli chcesz zakończyć sprawdzanie, kliknij przycisk <b>"Zakończ sprawdzanie"</b>.
+          <br><b>WAŻNE!</b> Po kliknięciu tego
+          przycisku sprawdzana karta nie zostanie wysłana do systemu!
+        </p>
+      </div>
+    </div>
+
+    <div class="m-3 align-items-center w-50 d-flex justify-content-center mt-1 mt-md-5">
+      <button class="btn btn-primary w-100 btn-lg" @click="goToMarking">PRZEJDŹ DALEJ</button>
+    </div>
   </div>
 </template>
-<style></style>
+
+<style scoped>
+  body {
+    overflow: hidden;
+  }
+
+  p {
+    text-align: justify;
+  }
+
+  @media(max-width: 1000px) {
+    div.d-flex {
+      margin-top: 80px !important;
+      justify-content: start !important;
+    }
+
+    div.card {
+      max-width: 95% !important;
+    }
+  }
+
+  @media(max-width: 768px) {
+    div.card {
+      margin-bottom: 0 !important;
+    }
+
+    button.btn.btn-lg {
+      font-size: 5vw !important;
+      width: 100% !important;
+    }
+  }
+</style>
