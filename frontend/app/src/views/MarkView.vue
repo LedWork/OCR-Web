@@ -96,7 +96,7 @@ export default {
             <DynamicForm :value="jsonData" @update:value="updateJsonData" />
             <div class="text-center mt-3">
               <button type="submit" class="btn btn-lg btn-success w-100">
-                WYŚLIJ I PRZEJDŹ DO NASTĘPNEJ KARTY
+                WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
               </button>
             </div>
           </form>
