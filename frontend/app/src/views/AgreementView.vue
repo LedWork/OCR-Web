@@ -4,24 +4,12 @@ import {getCSRFToken} from "@/scripts/utils.js";
 export default {
   data() {
     return {
-      loading: true,
+      loading: true
     }
   },
   async mounted() {
     try {
       this.loading = await checkSession(this.$router);
-
-      const response = await fetch("/api/agreement/contract", { method: "GET" });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.message === "You have already agreed to the contract.") {
-          // Redirect to the instruction page
-          this.$router.push({ name: "instruction" });
-          return;
-        }
-      }
-
       window.addEventListener("resize", changeOrientation);
     } catch (error) {
       console.error("An error occurred while checking agreement status:", error);
@@ -33,27 +21,17 @@ export default {
   },
   methods: {
     async submitAgreement() {
-      try {
-        const response = await fetch("/api/agreement/contract", {
-          method: "POST",
-          headers: {
-            'X-CSRF-TOKEN': getCSRFToken(),
-          },
-          body: JSON.stringify({ agree: "on" }) // Send 'agree' as JSON
-        });
+      const response = await fetch("/api/agreement/contract", {
+        method: "POST",
+        headers: {
+          'X-CSRF-TOKEN': getCSRFToken(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ agree: "on" }) // Send 'agree' as JSON
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log(data.message); // Optional: Log the success message
-          this.$router.push({ name: "instruction" }); // Navigate to instruction page
-        } else {
-          const errorData = await response.json();
-          console.error(errorData.error); // Log the error message
-          alert(errorData.error); // Show an alert with the error
-        }
-      } catch (error) {
-        console.error("An error occurred while submitting the agreement:", error);
-        alert("An error occurred. Please try again.");
+      if (response.ok) {
+        this.$router.push({ name: "instruction" }); // Navigate to instruction page
       }
     }
   }

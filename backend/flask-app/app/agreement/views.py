@@ -41,7 +41,7 @@ def get_contract():
         print("User has already agreed to the contract.")  # Log agreement status
         return jsonify({"message": "You have already agreed to the contract."}), 200
 
-    print("User has not agreed to the contract yet.")  # Log when the user hasn't agreed
+    print("You have not agreed to the contract yet.")  # Log when the user hasn't agreed
     return jsonify({"message": "You have not agreed to the contract yet."}), 200
 
 

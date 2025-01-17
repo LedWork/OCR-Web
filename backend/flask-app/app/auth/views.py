@@ -19,7 +19,7 @@ def check_admin_session():
     login = session['user']
 
     if not is_admin(login):
-        return jsonify({"status": "error", "message": "Unauthorized. Admin access required."}), 401
+        return jsonify({"status": "error", "message": "Unauthorized. Admin access required. Bla Bla"}), 401
     return jsonify({"status": "success", "message": "Admin access verified."}), 200
 
 @auth_bp.route('/login', methods=['POST'])

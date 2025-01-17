@@ -40,7 +40,8 @@ export default {
               headers: {
                 'X-CSRF-TOKEN': getCSRFToken(),
               },
-            });
+            }
+          );
 
             if (response.ok) {
               const data = await response.json();
@@ -48,10 +49,15 @@ export default {
                 this.$router.push({ name: "instruction" });
                 return;
               }
-              if (data.message === "You have not agreed to the contract.") {
+              if (data.message === "You have not agreed to the contract yet.") {
                 this.$router.push({ name: "agreement" });
                 return;
               }
+            }
+            else{
+              const errorData = await response.json();
+              console.error(errorData.error); // Log the error message
+              alert(errorData.error); // Show an alert with the error
             }
           }
         }
