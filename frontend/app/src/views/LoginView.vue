@@ -1,12 +1,9 @@
 <script>
 import { globalState } from '@/scripts/store'
+import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
 import axios from 'axios'
 import {getCSRFToken} from "@/scripts/utils.js";
 export default {
-  // async created() {
-  //   const response = await axios.get(apiUrl + '/csrf-token')
-  //   this.csrfToken = response.data.csrf_token
-  // },
   data() {
     return {
       login: null,
@@ -32,30 +29,31 @@ export default {
         )
         if (response.status === 200) {
           globalState.isAuthenticated = true
-          this.$router.push({name: 'agreement'})
-        }
-      } catch(error) {
-        console.error(error)
-        this.error = error.response.data.message
-      }
-    },
-    async goToInstruction() {
-      try {
-        const response = await axios.post(
-          '/api/auth/login',
-          {
-            login: this.login,
-            password: this.password,
-          },
-          {
-            headers: {
-              'X-CSRF-TOKEN': getCSRFToken(),
-            },
-          },
-        )
-        if (response.status === 200) {
-          globalState.isAuthenticated = true
-          this.$router.push({name: 'instruction'})
+
+          this.admin = await adminCheckSession(this.$router);
+
+          if (this.admin) {
+            this.$router.push({name: 'admin'})
+          } else {
+            const response = await fetch("/api/agreement/contract", { 
+              method: "GET",
+              headers: {
+                'X-CSRF-TOKEN': getCSRFToken(),
+              },
+            });
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.message === "You have already agreed to the contract.") {
+                this.$router.push({ name: "instruction" });
+                return;
+              }
+              if (data.message === "You have not agreed to the contract.") {
+                this.$router.push({ name: "agreement" });
+                return;
+              }
+            }
+          }
         }
       } catch(error) {
         console.error(error)

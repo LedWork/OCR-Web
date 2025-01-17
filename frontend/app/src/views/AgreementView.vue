@@ -1,20 +1,16 @@
 <script>
-import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
+import {changeOrientation, checkSession} from "@/scripts/utils.js";
 import {getCSRFToken} from "@/scripts/utils.js";
 export default {
   data() {
     return {
       loading: true,
-      admin: false
     }
   },
   async mounted() {
     try {
       this.loading = await checkSession(this.$router);
-      // commenting this out temporarily to avoid errors
-      // this.admin = await adminCheckSession();
 
-      // Check if the user has already agreed to the contract
       const response = await fetch("/api/agreement/contract", { method: "GET" });
 
       if (response.ok) {
@@ -65,7 +61,6 @@ export default {
 </script>
 <template>
   <div class="wrapper vertical" v-if="!loading">
-    <div v-if="admin" class="button" @click="goToAdmin">ADMIN PANEL</div>
     <div class="text-block">
       <p class="title">Contract Agreement</p>
       <p class="content">
