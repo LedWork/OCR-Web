@@ -20,6 +20,8 @@ def check_admin_session():
 
     if not is_admin(login):
         return jsonify({"status": "error", "message": "Unauthorized. Admin access required. Bla Bla"}), 401
+        # Should't there be some kind of return in the place where, we check if the user is admin or not?]
+        # This throws an error, that doesn't affect the functionality but it looks bad.
     return jsonify({"status": "success", "message": "Admin access verified."}), 200
 
 @auth_bp.route('/login', methods=['POST'])
