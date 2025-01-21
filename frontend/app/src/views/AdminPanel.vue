@@ -104,6 +104,9 @@ export default {
     goToInstruction() {
       this.$router.push({name: "instruction"});
     },
+    goToAgreement() {
+      this.$router.push({name: "agreement"});
+    },
     goToCardsPanel() {
       this.$router.push({name: "cards"});
     },

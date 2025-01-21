@@ -1,5 +1,6 @@
 <script>
 import { globalState } from '@/scripts/store'
+import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
 import axios from 'axios'
 import {getCSRFToken} from "@/scripts/utils.js";
 export default {
@@ -12,7 +13,7 @@ export default {
     }
   },
   methods: {
-    async goToInstruction() {
+    async goToAgreement() {
       try {
         const response = await axios.post(
           '/api/auth/login',
@@ -28,7 +29,37 @@ export default {
         )
         if (response.status === 200) {
           globalState.isAuthenticated = true
-          this.$router.push({name: 'instruction'})
+
+          this.admin = await adminCheckSession(this.$router);
+
+          if (this.admin) {
+            this.$router.push({name: 'admin'})
+          } else {
+            const response = await fetch("/api/agreement/contract", { 
+              method: "GET",
+              headers: {
+                'X-CSRF-TOKEN': getCSRFToken(),
+              },
+            }
+          );
+
+            if (response.ok) {
+              const data = await response.json();
+              if (data.message === "You have already agreed to the contract.") {
+                this.$router.push({ name: "instruction" });
+                return;
+              }
+              if (data.message === "You have not agreed to the contract yet.") {
+                this.$router.push({ name: "agreement" });
+                return;
+              }
+            }
+            else{
+              const errorData = await response.json();
+              console.error(errorData.error); // Log the error message
+              alert(errorData.error); // Show an alert with the error
+            }
+          }
         }
       } catch(error) {
         console.error(error)
@@ -76,9 +107,8 @@ export default {
           />
         </div>
         <h3 v-if="error" class="text-center my-4">{{ error }}</h3>
-
         <div class="align-items-center d-flex flex-column justify-content-between">
-          <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToInstruction">ZALOGUJ SIĘ</button>
+          <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToAgreement">ZALOGUJ SIĘ</button>
           <button class="btn btn-lg btn-info text-white w-50 mb-3" @click="makeAdmin">CREATE ADMIN </button>
         </div>
       </div>

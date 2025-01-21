@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import InstructionView from '../views/InstructionView.vue'
+import AgreementView from '../views/AgreementView.vue'
 import MarkView from '../views/MarkView.vue'
 import ThanksView from '../views/ThanksView.vue'
 import Error404 from '../views/Error404View.vue'
@@ -20,6 +21,11 @@ const router = createRouter({
       path: '/instruction',
       name: 'instruction',
       component: InstructionView,
+    },
+    {
+      path: '/agreement',
+      name: 'agreement',
+      component: AgreementView,
     },
     {
       path: '/marking',
