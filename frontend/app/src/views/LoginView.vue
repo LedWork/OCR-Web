@@ -1,6 +1,6 @@
 <script>
 import { globalState } from '@/scripts/store'
-import {adminCheckSession, changeOrientation, checkSession} from "@/scripts/utils.js";
+import {adminCheckSession, checkSession} from "@/scripts/utils.js";
 import axios from 'axios'
 import {getCSRFToken} from "@/scripts/utils.js";
 export default {
@@ -35,7 +35,7 @@ export default {
           if (this.admin) {
             this.$router.push({name: 'admin'})
           } else {
-            const response = await fetch("/api/agreement/contract", { 
+            const response = await fetch("/api/agreement/contract", {
               method: "GET",
               headers: {
                 'X-CSRF-TOKEN': getCSRFToken(),
@@ -51,7 +51,6 @@ export default {
               }
               if (data.message === "You have not agreed to the contract yet.") {
                 this.$router.push({ name: "agreement" });
-                return;
               }
             }
             else{
