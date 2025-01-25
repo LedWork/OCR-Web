@@ -4,5 +4,7 @@
       "@/*": ["./src/*"]
     }
   },
-  "exclude": ["node_modules", "../../backend/flask-app/app/dist"]
+  "exclude": ["node_modules",
+    "../../backend/flask-app/app/app/dist"
+  ]
 }

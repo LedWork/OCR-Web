@@ -2,6 +2,6 @@
 
 npm run build
 
-dest="../../backend/flask-app/app"
+dest="../../backend/flask-app/app/app"
 rm -rf "$dest/dist"
 mv dist "$dest"

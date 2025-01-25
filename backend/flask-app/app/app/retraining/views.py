@@ -9,7 +9,7 @@ from app.image.model import load_images
 
 retraining_bp = Blueprint('retraining', __name__)
 
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '/vol/uploads'
 ALLOWED_EXTENSIONS = {'zip'}
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)

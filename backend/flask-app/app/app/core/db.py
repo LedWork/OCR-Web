@@ -6,7 +6,7 @@ def get_db():
     """Return a database connection to MongoDB"""
     try:
         client = MongoClient(
-            host=os.getenv("MONGO_HOST", "localhost"),
+            host=os.getenv("MONGO_HOST", "mongodb"),
             port=int(os.getenv("MONGO_PORT", 27017)),
             username=os.getenv("MONGO_USER", "root"),
             password=os.getenv("MONGO_PASS", "pass"),

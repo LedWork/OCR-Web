@@ -1,6 +1,6 @@
 from unittest.mock import patch, MagicMock
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '../..')
 import unittest
 from flask import Flask, json
 from app.card.views import card_bp

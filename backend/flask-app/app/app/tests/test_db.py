@@ -1,6 +1,6 @@
 import unittest
 import sys
-sys.path.insert(0, '..')
+sys.path.insert(0, '../..')
 from unittest.mock import patch, MagicMock
 from app.core.db import get_db
 
