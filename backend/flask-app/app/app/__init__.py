@@ -7,6 +7,10 @@ from app.core.db import get_db
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 from flask_talisman import Talisman
+from flask_mail import Mail
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(
     __name__,
@@ -46,6 +50,15 @@ talisman = Talisman(
     referrer_policy='strict-origin-when-cross-origin'
 )
 
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS')
+app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL')
+
+mail = Mail(app)
+
 from app.admin.views import admin_bp
 from app.card.views import card_bp
 from app.auth.views import auth_bp
@@ -60,7 +73,6 @@ app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(image_bp, url_prefix="/api/image")
 app.register_blueprint(retraining_bp, url_prefix="/api/retraining")
 app.register_blueprint(agreement_bp, url_prefix="/api/agreement")
-
 
 @app.route("/api/csrf-token", methods=["GET"])
 def csrf_token():
