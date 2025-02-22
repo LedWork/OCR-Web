@@ -9,9 +9,9 @@ export default {
       uploadedImages: [],
       jsonFileName: "",
       imageFileNames: [],
-      admin: true,
+      admin: false,
       mail: null,
-    };
+  };
   },
   methods: {
     logout,
@@ -54,15 +54,15 @@ export default {
             );
             console.log(response);
             alert("Upload successful.", response.data);
-        } catch (error) {
-          alert("Error during file processing or upload: ", error);
-        }
-      };
-      reader.readAsText(this.uploadedFile);
-    } catch (error) {
-      console.error("Error: ", error);
-    }
-  },
+          } catch (error) {
+            alert("Error during file processing or upload: ", error);
+          }
+        };
+        reader.readAsText(this.uploadedFile);
+      } catch (error) {
+        console.error("Error: ", error);
+      }
+    },
     handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
@@ -109,22 +109,21 @@ export default {
     async addUser() {
       try {
         const response = await axios.post(
-          '/api/admin/add-user',
-          {
-            login: this.mail,
-          },
-          {
-            headers: {
-              'X-CSRF-TOKEN': getCSRFToken(),
+            '/api/admin/add-user',
+            {
+              login: this.mail,
             },
-          },
-        )
-        alert(response)
+            {
+              headers: {
+                'X-CSRF-TOKEN': getCSRFToken(),
+              },
+            },
+          )
+          alert(response.data.message);
       }
       catch (error) {
         console.error(error);
       }
-
     }
   },
   async mounted(){

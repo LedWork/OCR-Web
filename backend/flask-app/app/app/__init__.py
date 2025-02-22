@@ -11,6 +11,12 @@ from flask_mail import Mail
 from dotenv import load_dotenv
 
 load_dotenv()
+print(os.getenv("MAIL_SERVER"))
+print(os.getenv("MAIL_PORT"))
+print(os.getenv("MAIL_USERNAME"))
+print(os.getenv("MAIL_PASSWORD"))
+print(os.getenv("MAIL_USE_TLS"))
+print(os.getenv("MAIL_USE_SSL"))
 
 app = Flask(
     __name__,
@@ -50,12 +56,12 @@ talisman = Talisman(
     referrer_policy='strict-origin-when-cross-origin'
 )
 
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
+app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
 app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS')
-app.config['MAIL_USE_SSL'] = os.getenv('MAIL_USE_SSL')
+app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
+app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
 
 mail = Mail(app)
 
