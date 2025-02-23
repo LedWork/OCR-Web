@@ -36,3 +36,5 @@ frontend/.vite
 backend/.idea
 backend/flask-app/.idea
 
+.env
+
