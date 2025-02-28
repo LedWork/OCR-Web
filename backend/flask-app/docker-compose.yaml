@@ -1,3 +1,4 @@
+
 services:
   app:
     build:
@@ -5,15 +6,15 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./app:/app
+      - ./app/app:/app
     environment:
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
       - MONGO_USER=root
       - MONGO_PASS=pass
+      - SECRET_KEY=SECRET
     command: >
       sh -c "flask --app . run --debug --host=0.0.0.0"
-      
 
   mongodb:
     image: mongo:6.0
