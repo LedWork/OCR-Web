@@ -64,7 +64,6 @@ export default {
             v-model="email"
           />
         </div>
-        <h5 class="text-center my-3">Jeśli nie masz jeszcze konta, napisz do [email]</h5>
         <div v-if="error" class="border border-danger p-3 rounded bg-light">
           <h3 class="text-center text-danger">{{ error }}</h3>
         </div>
