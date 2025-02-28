@@ -29,13 +29,11 @@ export default {
           },
         )
         this.loading = false
-        if (response.status === 200) {
-          this.showModal = true
+        this.showModal = true
         }
       }
       catch (error) {
-        this.loading = false
-        this.error = error.response.data.message;
+          this.showModal = true
       }
     },
     closeModal() {
@@ -63,9 +61,6 @@ export default {
             name="email"
             v-model="email"
           />
-        </div>
-        <div v-if="error" class="border border-danger p-3 rounded bg-light">
-          <h3 class="text-center text-danger">{{ error }}</h3>
         </div>
         <div class="align-items-center mt-3 d-flex flex-column justify-content-between">
           <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToLogin">WYŚLIJ HASŁO</button>
