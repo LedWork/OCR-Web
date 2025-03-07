@@ -58,7 +58,7 @@ def generate_user_password(login):
 def send_password_mail(email, password):
     msg = Message(
         subject='Hasło do konta w OCR-PCK.',
-        sender='2eed70cdc0cea3',
+        sender=mail.default_sender,
         recipients=[email]
     )
     msg.body = f"""

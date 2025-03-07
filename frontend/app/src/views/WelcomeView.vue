@@ -30,8 +30,7 @@ export default {
         )
         this.loading = false
         this.showModal = true
-        }
-
+      } 
       catch (error) {
           this.showModal = true
       }
