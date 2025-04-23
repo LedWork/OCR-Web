@@ -35,8 +35,7 @@ The script will apply the following augmentations to your images:
 - Rotation
 - Salient edge mapping
 
-Also, noise is added to all augumented images.
-
+Also, noise is added to all augmented images.
 ## Output
 
 - Augmented images will be saved in the `images/aug` directory
