@@ -38,3 +38,10 @@ backend/flask-app/.idea
 
 .env
 
+donut/augment_data/__pycache__/*
+donut/labels/*.json
+result/*
+dataset/*
+images/*.jpg
+images/*.png
+images/*.jpeg
