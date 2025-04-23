@@ -1,6 +1,6 @@
 you can put your labels here.
 
-I should be form of json. List of:
+It should be in the form of JSON. List of:
 
 {
     "image_code": "my_example.jpg",
