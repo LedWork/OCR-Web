@@ -19,7 +19,7 @@ def prepare_dataset_dict(json_file, images_dir):
 
   random.shuffle(json_file)
 
-  middle_point = len(json_file) * 0.8
+  middle_point = int(len(json_file) * 0.8)
   
   for i, single_json in enumerate(json_file):
     for aug in single_json["aug"]:
