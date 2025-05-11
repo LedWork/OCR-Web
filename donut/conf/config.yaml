@@ -1,0 +1,6 @@
+labels_in: labels/labels_in.json
+labels_out: labels/labels_out.json
+labels_temp: labels/labels_temp.json
+nr_of_max_cicles: 100
+result_path: result
+input_size: [1280, 960]
