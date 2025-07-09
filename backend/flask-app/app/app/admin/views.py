@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint
 from app.card.model import (load_cards, find_card_by_image_code, delete_card_by_image_code,
                             retrieve_all_image_codes_from_cards)
 from app.image.model import load_images
-from app.admin.model import create_user, user_exists, get_all_users, delete_user, revoke_user, unrevoke_user
+from app.admin.model import create_user, user_exists, get_all_users, revoke_user, unrevoke_user
 from app.auth.decorators import admin_required
 from app.core.utils import parse_json
 from app.card.model import (get_card_by_id, update_card, increment_correct)

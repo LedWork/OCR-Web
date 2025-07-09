@@ -1,4 +1,5 @@
 import os
+import logging
 
 from flask import Flask, session, render_template, jsonify
 from flask_session import Session
@@ -11,6 +12,10 @@ from flask_mail import Mail
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(
     __name__,
@@ -51,11 +56,25 @@ talisman = Talisman(
     referrer_policy='strict-origin-when-cross-origin'
 )
 
-app.config['MAIL_SERVER'] = os.getenv("MAIL_SERVER")
-app.config['MAIL_PORT'] = os.getenv('MAIL_PORT')
-app.config['MAIL_USERNAME'] = os.getenv("MAIL_USERNAME")
-app.config['MAIL_PASSWORD'] = os.getenv("MAIL_PASSWORD")
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv("MAIL_USERNAME")
+# Email configuration with validation and logging
+mail_server = os.getenv("MAIL_SERVER")
+mail_port = os.getenv('MAIL_PORT')
+mail_username = os.getenv("MAIL_USERNAME")
+mail_password = os.getenv("MAIL_PASSWORD")
+
+# Log email configuration (without password for security)
+logger.info(f"Email configuration - Server: {mail_server}, Port: {mail_port}, Username: {mail_username}")
+
+# Validate email configuration
+if not all([mail_server, mail_port, mail_username, mail_password]):
+    logger.error("Missing email configuration variables. Please check MAIL_SERVER, MAIL_PORT, MAIL_USERNAME, MAIL_PASSWORD")
+    logger.error(f"Current values - Server: {mail_server}, Port: {mail_port}, Username: {mail_username}, Password: {'SET' if mail_password else 'NOT SET'}")
+
+app.config['MAIL_SERVER'] = mail_server
+app.config['MAIL_PORT'] = int(mail_port) if mail_port else 587
+app.config['MAIL_USERNAME'] = mail_username
+app.config['MAIL_PASSWORD'] = mail_password
+app.config['MAIL_DEFAULT_SENDER'] = mail_username
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
 
