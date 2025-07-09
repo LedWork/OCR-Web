@@ -4,12 +4,25 @@ import {getCSRFToken} from "@/scripts/utils.js";
 export default {
   data() {
     return {
-      loading: true
+      loading: true,
+      userEmail: ''
     }
   },
   async mounted() {
     try {
       this.loading = await checkSession(this.$router);
+      // Fetch user email
+      const response = await fetch("/api/auth/session", {
+        method: "GET",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        this.userEmail = data.email || '';
+      }
     } catch (error) {
       console.error("An error occurred while checking agreement status:", error);
       alert("An error occurred. Please reload the page or try again later.");
@@ -48,7 +61,7 @@ export default {
           <h5> Identyfikacja Stron </h5>
           - <b>Administrator Danych</b>: Polski Czerwony Krzyż z siedzibą w Warszawie (00-561) przy ul. Mokotowskiej 14, iod@pck.pl
           <br>
-          - <b>Weryfikator</b>: [adres email]
+          - <b>Weryfikator</b>: {{ userEmail }}
           <br> <br>
           <h5> Zakres i Cel </h5>
           Weryfikator przyjmuje do wiadomości, że: <br>
@@ -72,7 +85,7 @@ export default {
           <h5> Konsekwencje naruszenia </h5>
           Naruszenie warunków niniejszej umowy może skutkować: <br>
           1. Natychmiastowym zakończeniem współpracy w ramach procesu weryfikacji. <br>
-          2. Podjęciem działań prawnych na podstawie obowiązujących przepisów dotyczących ochrony danych osobowych, w tym kar wynikających z RODO.
+          2. Podjęciem działań prawnych na podstawie obowiązujących przepisów dotyczących ochrony danych osobowych, w tym kar wynikających z RODO. <br>
           3. Żądaniem od Weryfikatora odszkodowania za szkody wynikające z naruszenia umowy.
           <br> <br>
           <h5> Potwierdzenie </h5>

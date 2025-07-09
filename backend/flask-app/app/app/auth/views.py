@@ -1,6 +1,7 @@
 from flask import jsonify, request, Blueprint, session
 from app.auth.model import user_exists, password_correct, is_admin, has_password_expired
 from app.admin.model import generate_user_password
+from app.core.db import get_db
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -8,7 +9,18 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/session', methods=['GET'])
 def check_session():
     if 'user' in session:
-        return jsonify({"message": "OK"}), 200
+        # Get user email from database
+        db = get_db()
+        collection = db['users']
+        user = collection.find_one({"login": session['user']})
+        
+        if user:
+            return jsonify({
+                "message": "OK",
+                "email": user['login']  # login is the email address
+            }), 200
+        else:
+            return jsonify({"message": "User not found"}), 401
     return jsonify({"message": "User not logged in"}), 401
 
 @auth_bp.route('/session-admin', methods=['GET'])
