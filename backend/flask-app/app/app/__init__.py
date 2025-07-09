@@ -3,7 +3,7 @@ import os
 from flask import Flask, session, render_template, jsonify
 from flask_session import Session
 from datetime import timedelta
-from app.core.db import get_db
+from app.core.db import get_db, ensure_admin_user
 from flask_wtf.csrf import CSRFProtect, generate_csrf
 from flask_cors import CORS
 from flask_talisman import Talisman
@@ -11,10 +11,6 @@ from flask_mail import Mail
 from dotenv import load_dotenv
 
 load_dotenv()
-print(os.getenv("MAIL_SERVER"))
-print(os.getenv("MAIL_PORT"))
-print(os.getenv("MAIL_USERNAME"))
-print(os.getenv("MAIL_PASSWORD"))
 
 app = Flask(
     __name__,
@@ -23,6 +19,7 @@ app = Flask(
     static_url_path="/static",
 )
 db = get_db()
+ensure_admin_user(db)
 app.config["SESSION_TYPE"] = "mongodb"
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "SECRET")
 app.config["SESSION_PERMANENT"] = True  # bo czas ustawiamy

@@ -9,12 +9,13 @@ def ensure_admin_user(db):
 
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(admin_password.encode("utf-8"), salt)
-
-    users.insert_one({
-        "login": admin_login,
-        "password": hashed_password,
-        "is_super_user": True
-    })
+    existing_user = users.find_one({"login": admin_login})
+    if not existing_user:
+        users.insert_one({
+            "login": admin_login,
+            "password": hashed_password,
+            "is_super_user": True
+        })
 
 def get_db():
     """Return a database connection to MongoDB"""
@@ -27,7 +28,6 @@ def get_db():
         )
         db = client["main_db"]
 
-        ensure_admin_user(db)
         return db
     except Exception as e:
         raise
