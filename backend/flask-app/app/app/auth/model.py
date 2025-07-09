@@ -2,6 +2,7 @@ import datetime
 
 from bcrypt import checkpw
 from app.core.db import get_db
+from flask import current_app
 
 
 def user_exists(login):
@@ -19,6 +20,9 @@ def password_correct(login, password):
     collection = db['users']
     user = collection.find_one({"login": login})
 
+    if user is None:
+        return False
+
     if checkpw(password.encode('utf-8'), user['password']):
         return True
     else:
@@ -29,6 +33,9 @@ def has_password_expired(login):
     collection = db['users']
     user = collection.find_one({"login": login})
 
+    if user is None:
+        return False
+
     if user['is_super_user']:
         return False
 
@@ -37,7 +44,11 @@ def has_password_expired(login):
     current_time = datetime.datetime.now()
     time_difference = current_time - user_created_at
 
-    if time_difference >= datetime.timedelta(hours=4):
+    # Get configurable password validity from app config
+    password_validity_minutes = current_app.config.get('PASSWORD_VALIDITY_MINUTES', 10)
+    validity_timedelta = datetime.timedelta(minutes=password_validity_minutes)
+
+    if time_difference >= validity_timedelta:
         collection.update_one(
             {"login": login},
             {"$unset": {"password": ""}})
@@ -50,4 +61,14 @@ def is_admin(login):
     collection = db['users']
     user = collection.find_one({"login": login})
 
-    return user is not None and user.get('is_super_user', False)
+    if user is None:
+        return False
+
+    return user.get('is_super_user', False)
+
+def is_user_revoked(login):
+    """Check if a user is revoked"""
+    db = get_db()
+    collection = db['users']
+    user = collection.find_one({"login": login})
+    return user is not None and user.get('is_revoked', False)

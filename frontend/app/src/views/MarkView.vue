@@ -16,7 +16,6 @@ export default {
   data() {
     return {
       loading: true,
-      loadingNext: false,
       image: null,
       cardData: null,
       jsonData: {},
@@ -42,7 +41,7 @@ export default {
     },
     async handleSubmit() {
       try {
-        this.loadingNext = true
+        this.loading = true
         this.jsonData = parseGtParse(this.jsonData, true)
         this.cardData.gt_parse = this.jsonData
         const response = await axios.post('api/card/correct', this.cardData, {
@@ -62,7 +61,7 @@ export default {
         console.error('Error sending data:', error)
         alert('There was an error sending your data.')
       } finally {
-        this.loadingNext = false
+        this.loading = false
       }
     },
     goToThanks() {
@@ -70,14 +69,21 @@ export default {
     },
   },
   async mounted() {
-    this.loading = await checkSession(this.$router)
-    await this.getCard()
-    this.image = await loadImage(this.imageCode)
+    try {
+      await checkSession(this.$router)
+      // If we reach here, session is valid (checkSession would redirect if invalid)
+      await this.getCard()
+      this.image = await loadImage(this.imageCode)
+    } catch (error) {
+      console.error('Error in mounted:', error)
+    } finally {
+      this.loading = false
+    }
   },
 }
 </script>
 <template>
-  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-5" v-if="!loading && cardData && !loadingNext">
+  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-5" v-if="!loading && cardData">
     <div class="container d-flex flex-column justify-content-center align-items-center h-100">
       <div class="row w-100 d-flex justify-content-center mb-3">
         <button
@@ -100,8 +106,8 @@ export default {
           <form @submit.prevent="handleSubmit" class="w-100">
             <DynamicForm :value="jsonData" @update:value="updateJsonData" />
             <div class="text-center mt-3">
-              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loadingNext">
-                <span v-if="loadingNext">ŁADOWANIE...</span>
+              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading">
+                <span v-if="loading">ŁADOWANIE...</span>
                 <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
               </button>
             </div>
@@ -111,17 +117,17 @@ export default {
     </div>
   </div>
   
-  <!-- Loading indicator when fetching next card -->
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loadingNext">
+  <!-- Loading indicator -->
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading">
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
       </div>
-      <h3 class="mt-3">Ładowanie następnej karty...</h3>
+      <h3 class="mt-3">Ładowanie karty...</h3>
     </div>
   </div>
   
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData && !loadingNext">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
     <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
     <button
       @click="goToThanks"

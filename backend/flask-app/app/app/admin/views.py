@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint
 from app.card.model import (load_cards, find_card_by_image_code, delete_card_by_image_code,
                             retrieve_all_image_codes_from_cards)
 from app.image.model import load_images
-from app.admin.model import create_user, user_exists
+from app.admin.model import create_user, user_exists, get_all_users, revoke_user, unrevoke_user
 from app.auth.decorators import admin_required
 from app.core.utils import parse_json
 from app.card.model import (get_card_by_id, update_card, increment_correct)
@@ -107,3 +107,40 @@ def receive_correct_card():
         return jsonify({"message": "Card marked as correct and updated."}), 200
     else:
         return jsonify({"error": "Error updating card."}), 500
+
+
+@admin_bp.route('/users', methods=['GET'])
+@admin_required
+def get_users():
+    """Get all users"""
+    try:
+        users = get_all_users()
+        return jsonify({"users": users}), 200
+    except Exception as e:
+        return jsonify({"error": f"Failed to get users: {str(e)}"}), 500
+
+
+
+@admin_bp.route('/users/<login>/revoke', methods=['POST'])
+@admin_required
+def revoke_user_endpoint(login):
+    """Revoke a user by login"""
+    try:
+        if revoke_user(login):
+            return jsonify({"message": f"User {login} revoked successfully"}), 200
+        else:
+            return jsonify({"error": f"User {login} not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Failed to revoke user: {str(e)}"}), 500
+
+@admin_bp.route('/users/<login>/unrevoke', methods=['POST'])
+@admin_required
+def unrevoke_user_endpoint(login):
+    """Unrevoke a user by login"""
+    try:
+        if unrevoke_user(login):
+            return jsonify({"message": f"User {login} unrevoked successfully"}), 200
+        else:
+            return jsonify({"error": f"User {login} not found"}), 404
+    except Exception as e:
+        return jsonify({"error": f"Failed to unrevoke user: {str(e)}"}), 500
