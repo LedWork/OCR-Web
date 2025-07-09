@@ -112,7 +112,6 @@ export default {
             v-model="password"
           />
         </div>
-        <h5 class="text-center my-2">Jeśli nie masz jeszcze konta, napisz do [email]</h5>
         <h3 v-if="error" class="text-center my-4">{{ error }}</h3>
         <div class="align-items-center d-flex flex-column justify-content-between">
           <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToAgreement">

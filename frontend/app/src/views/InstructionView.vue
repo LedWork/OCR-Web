@@ -42,9 +42,9 @@ export default {
           zachowując podobną kolejność jak w oryginale.
           <br><br>
           Prosimy o weryfikację poprawności odczytanych danych we wszystkich polach. W przypadku błędów należy wprowadzić poprawną wartość.
-          Po zweryfikowaniu wszystkich pól, należy kliknąć przycisk <b>"Następna karta"</b>, aby wysłać kartę do systemu i przejść do kolejnego dokumentu.
+          Po zweryfikowaniu wszystkich pól, należy kliknąć przycisk <b>"Wyślij kartę i przejdź do następnej"</b>, aby wysłać kartę do systemu i przejść do kolejnego dokumentu.
           <br><br>
-          Aby przerwać proces weryfikacji, należy użyć przycisku <b>"Zakończ sprawdzanie".</b>.
+          Aby przerwać proces weryfikacji, należy użyć przycisku <b>"Zakończ sprawdzanie"</b>.
           <br><br>
           <b>Uwaga:</b> Użycie przycisku "Zakończ sprawdzanie" spowoduje, że aktualnie weryfikowana karta nie zostanie zapisana w systemie.
         </p>
