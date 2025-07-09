@@ -87,6 +87,7 @@ export default {
             type="email"
             name="email"
             v-model="email"
+            @keydown.enter="goToAgreement"
           />
           <input
             placeholder="Haslo..."
@@ -94,6 +95,7 @@ export default {
             type="password"
             name="password"
             v-model="password"
+            @keydown.enter="goToAgreement"
           />
         </div>
         <h3 v-if="error" class="text-center my-4">{{ error }}</h3>
