@@ -19,6 +19,9 @@ def password_correct(login, password):
     collection = db['users']
     user = collection.find_one({"login": login})
 
+    if user is None:
+        return False
+
     if checkpw(password.encode('utf-8'), user['password']):
         return True
     else:
@@ -28,6 +31,9 @@ def has_password_expired(login):
     db = get_db()
     collection = db['users']
     user = collection.find_one({"login": login})
+
+    if user is None:
+        return False
 
     if user['is_super_user']:
         return False
@@ -50,4 +56,14 @@ def is_admin(login):
     collection = db['users']
     user = collection.find_one({"login": login})
 
-    return user is not None and user.get('is_super_user', False)
+    if user is None:
+        return False
+
+    return user.get('is_super_user', False)
+
+def is_user_revoked(login):
+    """Check if a user is revoked"""
+    db = get_db()
+    collection = db['users']
+    user = collection.find_one({"login": login})
+    return user is not None and user.get('is_revoked', False)

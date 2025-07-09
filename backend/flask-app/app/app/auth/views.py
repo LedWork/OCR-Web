@@ -1,5 +1,5 @@
 from flask import jsonify, request, Blueprint, session
-from app.auth.model import user_exists, password_correct, is_admin, has_password_expired
+from app.auth.model import user_exists, password_correct, is_admin, has_password_expired, is_user_revoked
 from app.admin.model import generate_user_password
 from app.core.db import get_db
 
@@ -14,13 +14,13 @@ def check_session():
         collection = db['users']
         user = collection.find_one({"login": session['user']})
         
-        if user:
+        if user and not user.get('is_revoked', False):
             return jsonify({
                 "message": "OK",
                 "email": user['login']  # login is the email address
             }), 200
         else:
-            return jsonify({"message": "User not found"}), 401
+            return jsonify({"message": "User not found or account revoked"}), 401
     return jsonify({"message": "User not logged in"}), 401
 
 @auth_bp.route('/session-admin', methods=['GET'])
@@ -45,6 +45,10 @@ def auth_login():
 
     if user_exists(data['login']) is False:
         return jsonify({"message": "Login or password incorrect."}), 401
+
+    # Check if user is revoked
+    if is_user_revoked(data['login']):
+        return jsonify({"message": "Account has been revoked. Please contact administrator."}), 401
 
     if password_correct(data['login'], data['password']):
         session['user'] = data['login']

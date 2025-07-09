@@ -146,13 +146,14 @@ export default {
         this.loadingUsers = false;
       }
     },
-    async deleteUser(login) {
-      if (!confirm(`Are you sure you want to delete user ${login}?`)) {
+
+    async revokeUser(login) {
+      if (!confirm(`Are you sure you want to revoke user ${login}?`)) {
         return;
       }
       
       try {
-        const response = await axios.delete(`/api/admin/users/${login}`, {
+        const response = await axios.post(`/api/admin/users/${login}/revoke`, {}, {
           headers: {
             'X-CSRF-TOKEN': getCSRFToken(),
           },
@@ -160,8 +161,26 @@ export default {
         alert(response.data.message);
         await this.fetchUsers(); // Refresh the user list
       } catch (error) {
-        console.error('Error deleting user:', error);
-        alert("Error deleting user: " + (error.response?.data?.error || error.message));
+        console.error('Error revoking user:', error);
+        alert("Error revoking user: " + (error.response?.data?.error || error.message));
+      }
+    },
+    async unrevokeUser(login) {
+      if (!confirm(`Are you sure you want to unrevoke user ${login}?`)) {
+        return;
+      }
+      
+      try {
+        const response = await axios.post(`/api/admin/users/${login}/unrevoke`, {}, {
+          headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+          },
+        });
+        alert(response.data.message);
+        await this.fetchUsers(); // Refresh the user list
+      } catch (error) {
+        console.error('Error unrevoking user:', error);
+        alert("Error unrevoking user: " + (error.response?.data?.error || error.message));
       }
     },
   },
@@ -271,6 +290,7 @@ export default {
                     <th>Email</th>
                     <th>Data utworzenia</th>
                     <th>Typ użytkownika</th>
+                    <th>Status</th>
                     <th>Akcje</th>
                   </tr>
                 </thead>
@@ -283,13 +303,27 @@ export default {
                       <span v-else class="badge bg-primary">Użytkownik</span>
                     </td>
                     <td>
+                      <span v-if="user.is_revoked" class="badge bg-warning">Zablokowany</span>
+                      <span v-else class="badge bg-success">Aktywny</span>
+                    </td>
+                    <td>
                       <button 
-                        @click="deleteUser(user.login)" 
-                        class="btn btn-danger btn-sm"
+                        v-if="!user.is_revoked"
+                        @click="revokeUser(user.login)" 
+                        class="btn btn-warning btn-sm me-1"
                         :disabled="user.is_super_user"
-                        :title="user.is_super_user ? 'Nie można usunąć administratora' : 'Usuń użytkownika'"
+                        :title="user.is_super_user ? 'Nie można zablokować administratora' : 'Zablokuj użytkownika'"
                       >
-                        Usuń
+                        Zablokuj
+                      </button>
+                      <button 
+                        v-else
+                        @click="unrevokeUser(user.login)" 
+                        class="btn btn-success btn-sm me-1"
+                        :disabled="user.is_super_user"
+                        :title="user.is_super_user ? 'Nie można odblokować administratora' : 'Odblokuj użytkownika'"
+                      >
+                        Odblokuj
                       </button>
                     </td>
                   </tr>

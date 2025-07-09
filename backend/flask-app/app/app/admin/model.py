@@ -29,6 +29,7 @@ def create_user(data):
 
     data['password'] = ''
     data['is_super_user'] = False
+    data['is_revoked'] = False
     data['created_at'] = datetime.datetime.now()
     collection.insert_one(data)
 
@@ -97,3 +98,23 @@ def delete_user(login):
     collection = db['users']
     result = collection.delete_one({"login": login})
     return result.deleted_count > 0
+
+def revoke_user(login):
+    """Revoke a user by login - sets is_revoked to True instead of deleting"""
+    db = get_db()
+    collection = db['users']
+    result = collection.update_one(
+        {"login": login},
+        {"$set": {"is_revoked": True}}
+    )
+    return result.modified_count > 0
+
+def unrevoke_user(login):
+    """Unrevoke a user by login - sets is_revoked to False"""
+    db = get_db()
+    collection = db['users']
+    result = collection.update_one(
+        {"login": login},
+        {"$set": {"is_revoked": False}}
+    )
+    return result.modified_count > 0
