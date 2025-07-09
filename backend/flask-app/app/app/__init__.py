@@ -62,8 +62,12 @@ mail_port = os.getenv('MAIL_PORT')
 mail_username = os.getenv("MAIL_USERNAME")
 mail_password = os.getenv("MAIL_PASSWORD")
 
+# Password validity configuration
+password_validity_minutes = int(os.getenv("PASSWORD_VALIDITY_MINUTES", "10"))
+
 # Log email configuration (without password for security)
 logger.info(f"Email configuration - Server: {mail_server}, Port: {mail_port}, Username: {mail_username}")
+logger.info(f"Password validity set to {password_validity_minutes} minutes")
 
 # Validate email configuration
 if not all([mail_server, mail_port, mail_username, mail_password]):
@@ -77,6 +81,7 @@ app.config['MAIL_PASSWORD'] = mail_password
 app.config['MAIL_DEFAULT_SENDER'] = mail_username
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
+app.config['PASSWORD_VALIDITY_MINUTES'] = password_validity_minutes
 
 mail = Mail(app)
 

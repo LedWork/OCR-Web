@@ -2,6 +2,7 @@ import datetime
 
 from bcrypt import checkpw
 from app.core.db import get_db
+from flask import current_app
 
 
 def user_exists(login):
@@ -43,7 +44,11 @@ def has_password_expired(login):
     current_time = datetime.datetime.now()
     time_difference = current_time - user_created_at
 
-    if time_difference >= datetime.timedelta(hours=4):
+    # Get configurable password validity from app config
+    password_validity_minutes = current_app.config.get('PASSWORD_VALIDITY_MINUTES', 10)
+    validity_timedelta = datetime.timedelta(minutes=password_validity_minutes)
+
+    if time_difference >= validity_timedelta:
         collection.update_one(
             {"login": login},
             {"$unset": {"password": ""}})

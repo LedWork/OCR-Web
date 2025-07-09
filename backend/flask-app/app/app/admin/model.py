@@ -6,6 +6,7 @@ import logging
 from app.core.db import get_db
 from app import mail
 from flask_mail import Message
+from flask import current_app
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +89,19 @@ def send_password_mail(email, password):
             logger.error("MAIL_PASSWORD not configured")
             return False
 
+        # Get password validity time from config
+        password_validity_minutes = current_app.config.get('PASSWORD_VALIDITY_MINUTES', 10)
+        validity_hours = password_validity_minutes // 60
+        validity_minutes = password_validity_minutes % 60
+        
+        # Format validity time for display
+        if validity_hours > 0 and validity_minutes > 0:
+            validity_text = f"{validity_hours} godzin i {validity_minutes} minut"
+        elif validity_hours > 0:
+            validity_text = f"{validity_hours} godzin"
+        else:
+            validity_text = f"{validity_minutes} minut"
+
         msg = Message(
             subject='Hasło do konta w programie OCR-PCK.',
             sender=mail.default_sender,
@@ -99,7 +113,8 @@ def send_password_mail(email, password):
                     Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Twojego konta zostało utworzone.
                     
                     Hasło: {password}
-                    
+
+                    Hasło będzie ważne przez {validity_text}. Po tym czasie będzie trzeba wygenerować nowe hasło.
                     Prosimy o zachowanie tego hasła w bezpiecznym miejscu. W razie jakichkolwiek pytań lub wątpliwości, prosimy o kontakt.
                     
                     Z poważaniem,
