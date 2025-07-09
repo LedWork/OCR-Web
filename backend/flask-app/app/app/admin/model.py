@@ -57,7 +57,7 @@ def generate_user_password(login):
 
 def send_password_mail(email, password):
     msg = Message(
-        subject='Hasło do konta w OCR-PCK.',
+        subject='Hasło do konta w programie OCR-PCK.',
         sender=mail.default_sender,
         recipients=[email]
     )
@@ -75,3 +75,25 @@ def send_password_mail(email, password):
                 """
 
     mail.send(msg)
+
+
+def get_all_users():
+    """Get all users from the database"""
+    db = get_db()
+    collection = db['users']
+    users = list(collection.find({}, {'password': 0}))  # Exclude password field
+    
+    # Convert ObjectId to string for JSON serialization
+    for user in users:
+        if '_id' in user:
+            user['_id'] = str(user['_id'])
+    
+    return users
+
+
+def delete_user(login):
+    """Delete a user by login"""
+    db = get_db()
+    collection = db['users']
+    result = collection.delete_one({"login": login})
+    return result.deleted_count > 0

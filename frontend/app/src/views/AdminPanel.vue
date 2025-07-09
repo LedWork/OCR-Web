@@ -11,7 +11,9 @@ export default {
       imageFileNames: [],
       admin: false,
       mail: null,
-  };
+      users: [],
+      loadingUsers: false,
+    };
   },
   methods: {
     logout,
@@ -120,14 +122,52 @@ export default {
             },
           )
           alert(response.data.message);
+          this.mail = ""; // Clear the input
+          await this.fetchUsers(); // Refresh the user list
       }
       catch (error) {
         console.error(error);
+        alert("Error adding user: " + (error.response?.data?.message || error.message));
       }
-    }
+    },
+    async fetchUsers() {
+      this.loadingUsers = true;
+      try {
+        const response = await axios.get('/api/admin/users', {
+          headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+          },
+        });
+        this.users = response.data.users;
+      } catch (error) {
+        console.error('Error fetching users:', error);
+        alert("Error fetching users: " + (error.response?.data?.error || error.message));
+      } finally {
+        this.loadingUsers = false;
+      }
+    },
+    async deleteUser(login) {
+      if (!confirm(`Are you sure you want to delete user ${login}?`)) {
+        return;
+      }
+      
+      try {
+        const response = await axios.delete(`/api/admin/users/${login}`, {
+          headers: {
+            'X-CSRF-TOKEN': getCSRFToken(),
+          },
+        });
+        alert(response.data.message);
+        await this.fetchUsers(); // Refresh the user list
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert("Error deleting user: " + (error.response?.data?.error || error.message));
+      }
+    },
   },
   async mounted(){
     this.admin = await adminCheckSession(this.$router);
+    await this.fetchUsers(); // Fetch users on mount
   }
 }
 </script>
@@ -209,6 +249,56 @@ export default {
         </form>
       </div>
 
+      <div class="d-flex justify-content-center align-items-center flex-column mt-3 mb-4">
+        <h1 class="text-center">Lista użytkowników</h1>
+        
+        <div class="w-100 d-flex justify-content-center">
+          <div class="col-12 col-md-8">
+            <div v-if="loadingUsers" class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            
+            <div v-else-if="users.length === 0" class="text-center">
+              <p class="text-muted">Brak użytkowników</p>
+            </div>
+            
+            <div v-else class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                  <tr>
+                    <th>Email</th>
+                    <th>Data utworzenia</th>
+                    <th>Typ użytkownika</th>
+                    <th>Akcje</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="user in users" :key="user.login">
+                    <td>{{ user.login }}</td>
+                    <td>{{ new Date(user.created_at).toLocaleString('pl-PL') }}</td>
+                    <td>
+                      <span v-if="user.is_super_user" class="badge bg-danger">Admin</span>
+                      <span v-else class="badge bg-primary">Użytkownik</span>
+                    </td>
+                    <td>
+                      <button 
+                        @click="deleteUser(user.login)" 
+                        class="btn btn-danger btn-sm"
+                        :disabled="user.is_super_user"
+                        :title="user.is_super_user ? 'Nie można usunąć administratora' : 'Usuń użytkownika'"
+                      >
+                        Usuń
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
