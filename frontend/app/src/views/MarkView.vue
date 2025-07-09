@@ -112,7 +112,7 @@ export default {
   </div>
   
   <!-- Loading indicator when fetching next card -->
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loadingNext">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loadingNext || loading">
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -121,7 +121,7 @@ export default {
     </div>
   </div>
   
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData && !loadingNext">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !loadingNext && !cardData">
     <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
     <button
       @click="goToThanks"

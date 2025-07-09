@@ -17,13 +17,6 @@ export default {
       image: null,
       cardData: null,
       jsonData: {},
-      translations: {
-        Surname: 'Nazwisko',
-        'Name:': 'Imię',
-        'Date of birth': 'Data urodzenia',
-        Date: 'Data',
-        'Donated blood': 'Ilość oddanej krwi',
-      },
     }
   },
   methods: {
