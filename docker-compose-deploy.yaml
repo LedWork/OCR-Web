@@ -13,6 +13,8 @@ services:
       - MONGO_USER=${MONGO_USER}
       - MONGO_PASS=${MONGO_PASSWORD}
       - SECRET_KEY=${SECRET_KEY}
+      - ADMIN_LOGIN=${ADMIN_LOGIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       - mongodb
 
