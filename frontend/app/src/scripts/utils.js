@@ -113,14 +113,12 @@ const fieldOrder1 = [
   'Imię',
   'Data urodzenia',
   'PESEL',
-  'V st.',
-  'IV st.',
   'III st.',
   'II st.',
   'I st.',
 ]
 const fieldOrder2 =
-  ['Nr', 'Data', 'ZR', 'Ilość oddanej krwi']
+  ['Nr', 'Data', 'Na wniosek ZR', 'Ilość oddanej krwi (bez ml)']
 
 
 export function parseGtParse(data, reverse=false, fO=fieldOrder1) {
@@ -130,8 +128,7 @@ export function parseGtParse(data, reverse=false, fO=fieldOrder1) {
     'Name': 'Imię',
     'Date of birth': 'Data urodzenia',
     'Date': 'Data',
-    'Donated blood': 'Ilość oddanej krwi',
-    'Duplicate': 'Duplikat',
+    'Donated blood': 'Ilość oddanej krwi (bez ml)',
     'Additional information': 'Dodatkowe informacje (np. duplikaty)',
     'ZR': 'Na wniosek ZR',
   }

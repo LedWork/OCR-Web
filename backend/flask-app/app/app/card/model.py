@@ -1,6 +1,10 @@
+import logging
 from bson import ObjectId
 from app.core.db import get_db
 from app.image.model import delete_image
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 def load_cards(data):
@@ -121,14 +125,28 @@ def get_random_card(user_id):
         return None
 
 def retrieve_validated_cards():
+    logger.info("Starting retrieve_validated_cards function")
     db = get_db()
     collection = db['cards']
-    cards = collection.find(
-        {
-            "correct": {"$gte": 2},
-        }
-    )
-    return list(cards)
+    
+    # Log the query we're about to execute
+    query = {"correct": {"$gte": 2}}
+    logger.info(f"Executing query: {query}")
+    
+    # Get total count of all cards for comparison
+    total_cards = collection.count_documents({})
+    logger.info(f"Total cards in database: {total_cards}")
+    
+    # Get count of validated cards
+    validated_count = collection.count_documents(query)
+    logger.info(f"Cards matching validation criteria: {validated_count}")
+    
+    cards = collection.find(query)
+    cards_list = list(cards)
+    logger.info(f"Retrieved {len(cards_list)} validated cards")
+    
+    logger.info("Completed retrieve_validated_cards function")
+    return cards_list
 
 
 def mark_unchecked(data):

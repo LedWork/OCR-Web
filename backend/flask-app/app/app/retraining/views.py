@@ -6,6 +6,7 @@ from werkzeug.utils import secure_filename
 from app.auth.decorators import api_key_required
 from app.card.model import load_cards, retrieve_validated_cards
 from app.image.model import load_images
+from app.core.utils import parse_json
 
 retraining_bp = Blueprint('retraining', __name__)
 
@@ -23,7 +24,7 @@ def allowed_file(filename):
 @api_key_required
 def retrieve_data():
     cards = retrieve_validated_cards()
-    return jsonify(cards)
+    return jsonify(parse_json(cards))
 
 
 @retraining_bp.route('/', methods=['POST'])
