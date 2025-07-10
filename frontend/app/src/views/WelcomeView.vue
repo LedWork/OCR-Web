@@ -59,6 +59,7 @@ export default {
             type="email"
             name="email"
             v-model="email"
+            @keydown.enter="goToLogin"
           />
         </div>
         <div class="align-items-center mt-3 d-flex flex-column justify-content-between">
