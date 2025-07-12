@@ -36,7 +36,7 @@ frontend/.vite
 backend/.idea
 backend/flask-app/.idea
 
-.env
+.env.template
 
 donut/augment_data/__pycache__/*
 donut/labels/*.json

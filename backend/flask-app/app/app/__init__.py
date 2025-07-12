@@ -118,6 +118,3 @@ def add_csrf_cookie(response):
         response.set_cookie("csrftoken", generate_csrf(), secure=True, samesite="Lax")
     return response
 
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)

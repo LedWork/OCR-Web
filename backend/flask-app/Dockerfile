@@ -6,7 +6,7 @@ COPY ./requirements.txt /tmp/requirements.txt
 COPY ./app /app
 COPY ./scirpts /scripts
 WORKDIR /app
-EXPOSE 5000
+EXPOSE 8000
 
 RUN apk add --no-cache musl-dev gcc python3-dev libffi-dev pcre-dev linux-headers && \
     python -m venv /py && \
