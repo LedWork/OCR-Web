@@ -1,6 +1,7 @@
 import logging
 from bson import ObjectId
 from app.core.db import get_db
+from app.core.utils import EXPECTED_CHECKS_PER_CARD
 from app.image.model import delete_image
 
 # Configure logging
@@ -108,13 +109,13 @@ def increment_correct(card_id, user_id, number):
 
 
 def get_random_card(user_id):
-    """Get a random card with 'correct' less than 2"""
+    """Get a random card with 'correct' less than EXPECTED_CHECKS_PER_CARD"""
     db = get_db()
     collection = db['cards']
     try:
         card = collection.find_one(
             {
-                "correct": {"$lt": 2},
+                "correct": {"$lt": EXPECTED_CHECKS_PER_CARD},
                 "checked_by": {"$nin": [user_id]}
              },
             sort=[("correct", -1)]  # Sort by correctness in descending order
@@ -130,7 +131,7 @@ def retrieve_validated_cards():
     collection = db['cards']
     
     # Log the query we're about to execute
-    query = {"correct": {"$gte": 2}}
+    query = {"correct": {"$gte": EXPECTED_CHECKS_PER_CARD}}
     logger.info(f"Executing query: {query}")
     
     # Get total count of all cards for comparison
@@ -172,8 +173,31 @@ def find_card_by_image_code(card_image_code):
 def retrieve_all_image_codes_from_cards():
     db = get_db()
     collection = db['cards']
-    image_codes = collection.find({}, {"image_code": 1, "_id": 0})
-    return [card["image_code"] for card in image_codes]
+    cards = collection.find({}, {"image_code": 1, "correct": 1, "checked_by": 1, "_id": 0})
+    
+    # Expected number of checks per card (from the system configuration)
+    
+    cards_list = []
+    for card in cards:
+        current_checks = card.get('correct', 0)
+        checked_by = card.get('checked_by', [])
+        
+        # Determine if card is fully validated or checked by admin
+        is_validated = current_checks >= EXPECTED_CHECKS_PER_CARD
+        is_admin_checked = 'admin' in checked_by
+        
+        # Determine color based on validation status
+        is_green = is_validated or is_admin_checked
+        
+        cards_list.append({
+            "image_code": card["image_code"],
+            "check_status": f"[{current_checks}/{EXPECTED_CHECKS_PER_CARD}]",
+            "is_green": is_green,
+            "current_checks": current_checks,
+            "expected_checks": EXPECTED_CHECKS_PER_CARD
+        })
+    
+    return cards_list
 
 
 def delete_card_by_image_code(card_image_code):

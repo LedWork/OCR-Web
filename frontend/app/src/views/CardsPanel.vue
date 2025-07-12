@@ -73,16 +73,25 @@ export default {
       <table class="table table-striped table-bordered">
         <thead class="table-dark">
         <tr class="text-center">
-          <th class="w-75">Image Code</th>
-          <th class="w-75">Actions</th>
+          <th class="w-50">Image Code</th>
+          <th class="w-25">Check Status</th>
+          <th class="w-25">Actions</th>
         </tr>
         </thead>
         <tbody>
         <tr v-for="(card, index) in cards" :key="index">
-          <td>{{ card }}</td>
+          <td>{{ card.image_code }}</td>
+          <td class="text-center">
+            <span 
+              :class="card.is_green ? 'text-success fw-bold' : 'text-muted'"
+              :style="card.is_green ? 'color: #28a745 !important;' : ''"
+            >
+              {{ card.check_status }}
+            </span>
+          </td>
           <td class="d-flex gap-2 justify-content-center">
-            <button class="btn btn-info text-white btn-sm" @click="viewImage(card)">Pokaż</button>
-            <button class="btn btn-danger btn-sm" @click="deleteImage(card)">Usuń</button>
+            <button class="btn btn-info text-white btn-sm" @click="viewImage(card.image_code)">Pokaż</button>
+            <button class="btn btn-danger btn-sm" @click="deleteImage(card.image_code)">Usuń</button>
           </td>
         </tr>
         </tbody>
