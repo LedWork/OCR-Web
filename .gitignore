@@ -45,3 +45,5 @@ dataset/*
 images/*.jpg
 images/*.png
 images/*.jpeg
+
+**/venv/
