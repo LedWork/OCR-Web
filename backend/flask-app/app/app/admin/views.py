@@ -4,7 +4,7 @@ from app.card.model import (load_cards, find_card_by_image_code, delete_card_by_
 from app.image.model import load_images
 from app.admin.model import create_user, user_exists, get_all_users, revoke_user, unrevoke_user
 from app.auth.decorators import admin_required
-from app.core.utils import parse_json
+from app.core.utils import parse_json, EXPECTED_CHECKS_PER_CARD
 from app.card.model import (get_card_by_id, update_card, increment_correct)
 
 admin_bp = Blueprint('admin', __name__)
@@ -61,7 +61,8 @@ def add_user():
 @admin_bp.route('/cards', methods=['GET'])
 @admin_required
 def get_all_cards():
-    return retrieve_all_image_codes_from_cards()
+    cards = retrieve_all_image_codes_from_cards()
+    return jsonify(cards)
 
 
 @admin_bp.route('/card/<image_code>', methods=['DELETE'])
@@ -103,7 +104,7 @@ def receive_correct_card():
     data.pop("checked_by", None)
 
     if update_card(card_id, data):
-        increment_correct(card_id, 'admin', 3)
+        increment_correct(card_id, 'admin', EXPECTED_CHECKS_PER_CARD+1)
         return jsonify({"message": "Card marked as correct and updated."}), 200
     else:
         return jsonify({"error": "Error updating card."}), 500
