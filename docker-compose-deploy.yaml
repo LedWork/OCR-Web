@@ -6,7 +6,7 @@ services:
       context: ./backend/flask-app
     restart: always
     ports:
-      - "80:8000"
+      - "8080:8000"
     volumes:
       - ./backend/flask-app/app/app/dist/static:/app/dist/static
     environment:
