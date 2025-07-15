@@ -5,12 +5,15 @@ USER root
 
 RUN apk add --no-cache \
     certbot \
-    certbot-nginx \
+    py3-pip \
     curl \
     bash \
     libffi \
     ca-certificates \
-    openssl
+    openssl && \
+    python3 -m venv /opt/certbot && \
+    /opt/certbot/bin/pip install --no-cache-dir certbot-nginx && \
+    ln -sf /opt/certbot/bin/certbot /usr/local/bin/certbot
 
 
 COPY ./default.conf.tpl /etc/nginx/default.conf.tpl
