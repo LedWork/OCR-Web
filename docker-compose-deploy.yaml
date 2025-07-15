@@ -6,7 +6,7 @@ services:
       context: ./backend/flask-app
     restart: always
     ports:
-      - "8080:8000"
+      - "443:8000"
     volumes:
       - ./backend/flask-app/app/app/dist/static:/app/dist/static
     environment:
@@ -29,6 +29,16 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+  proxy:
+    build:
+      context: ./backend/flask-app/proxy
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+    volumes:
+      - ./backend/flask-app/app/app/dist/static:/vol/static
 
 volumes:
   mongo-data:
