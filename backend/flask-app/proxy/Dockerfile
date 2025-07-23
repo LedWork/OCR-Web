@@ -1,7 +1,7 @@
 FROM nginxinc/nginx-unprivileged:1-alpine
 LABEL maintainer="chriskondracki"
 
-ENV LISTEN_PORT=80
+ENV LISTEN_PORT=8000
 ENV APP_HOST=app
 ENV APP_PORT=9000
 
