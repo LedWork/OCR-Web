@@ -1,4 +1,4 @@
 #!/bin/sh
 set -e
 
-uwsgi --http :5000 --workers 2 --master --enable-threads --module app:app
+gunicorn --workers 2 --bind 0.0.0.0:5000 --threads 4 app:app
