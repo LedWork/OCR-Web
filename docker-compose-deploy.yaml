@@ -12,9 +12,9 @@ services:
     environment:
       - MONGO_HOST=mongodb
       - MONGO_PORT=27017
-      - MONGO_USER=root
-      - MONGO_PASS=pass
-      - SECRET_KEY=SECRET
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PASS=${MONGO_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
       - ADMIN_LOGIN=${ADMIN_LOGIN}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
       - MODEL_API_KEY=${MODEL_API_KEY}
