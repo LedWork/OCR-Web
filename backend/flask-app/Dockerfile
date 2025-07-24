@@ -6,7 +6,7 @@ COPY ./requirements.txt /tmp/requirements.txt
 COPY ./app /app
 COPY ./scirpts /scripts
 WORKDIR /app
-EXPOSE 80
+EXPOSE 5000
 
 RUN apk add --no-cache musl-dev gcc python3-dev libffi-dev pcre-dev linux-headers && \
     python -m venv /py && \
@@ -14,9 +14,9 @@ RUN apk add --no-cache musl-dev gcc python3-dev libffi-dev pcre-dev linux-header
     pip install -r /tmp/requirements.txt && \
     rm -rf /tmp && \
     adduser \
-        --disabled-password \
-        --no-create-home \
-        flaskuser && \
+    --disabled-password \
+    --no-create-home \
+    flaskuser && \
     mkdir -p /vol/web/media && \
     mkdir -p /vol/web/static && \
     mkdir -p /vol/uploads && \
