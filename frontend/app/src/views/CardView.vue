@@ -19,6 +19,7 @@ export default {
       cardData: null,
       jsonData: {},
       showImageModal: false,
+      splitPercent: 50, // Default split percentage
     }
   },
   methods: {
@@ -81,10 +82,22 @@ export default {
     },
     closeImageModal() {
       this.showImageModal = false;
+    },
+    handleSplitChange(percent) {
+      this.splitPercent = percent;
+      // Save to session storage
+      sessionStorage.setItem('cardViewSplitPercent', percent.toString());
+    },
+    loadSplitPercent() {
+      const saved = sessionStorage.getItem('cardViewSplitPercent');
+      if (saved) {
+        this.splitPercent = parseInt(saved);
+      }
     }
   },
   async mounted() {
     this.loading = await checkSession(this.$router)
+    this.loadSplitPercent(); // Load saved split percentage
     await this.getCard()
     this.image = await loadImage(this.imageCode)
   },
@@ -102,7 +115,14 @@ export default {
         </div>
       </div>
 
-      <split-pane split="vertical" :min-percent="20" :default-percent="50" class="split-pane-main">
+      <split-pane 
+        split="vertical" 
+        :min-percent="20" 
+        :default-percent="splitPercent"
+        :percent="splitPercent"
+        @resize="handleSplitChange"
+        class="split-pane-main"
+      >
         <template #paneL>
           <div class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100">
             <img
