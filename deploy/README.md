@@ -9,5 +9,8 @@ chmod +x deploy/*.sh
 # export all deployment env variables
 export DOCKER_COMPOSE_FILE=./docker-compose-deploy.yaml
 git pull origin main
+cd frontend/app
+./build.sh
+cd -
 ./deploy/update-deployment.sh
 ```
