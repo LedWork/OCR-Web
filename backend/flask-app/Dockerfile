@@ -4,7 +4,7 @@ LABEL maintainer="chriskondracki"
 ENV PYTHONUNBUFFERED 1
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./app /app
-COPY ./scirpts /scripts
+COPY ./scripts /scripts
 WORKDIR /app
 EXPOSE 5000
 
