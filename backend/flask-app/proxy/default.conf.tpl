@@ -1,4 +1,4 @@
-# nginx/nginx-full-ssl.conf
+    # nginx/nginx-full-ssl.conf
     # This is the FINAL Nginx configuration that will serve your app over HTTPS.
     user nginx;
     worker_processes auto;
