@@ -35,12 +35,20 @@ docker-compose up --build
 ```
 This will build and start the Docker container.  
 
-## 5. Testing  
-Visit [http://localhost:5000](http://localhost:5000/) to test the app.  
 
-1. You need to create an admin user. A temporary button is provided for this (**not secure** and will be removed later).  
-2. Log in with:  
-   - **Username:** `admin`  
-   - **Password:** `admin`  
-3. Access the **Admin Panel**, where you can add users and data.  
-4. From here, you can test all application functionalities.  
+## Deployment with certbot certificates - only first time
+
+Note: http and https traffic must be enabled in cloud console
+
+```
+docker compose -f docker-compose-deploy.yaml down --volumes
+sudo rm -rf /etc/letsencrypt/
+mkdir -p nginx/certbot/{www,conf}
+cp nginx/nginx-http-only.conf nginx/nginx.conf
+docker compose -f docker-compose-deploy.yaml up --build -d
+sudo certbot certonly --webroot -w ~/OCR-Web/nginx/certbot/www -d ocr-pck.eu -d www.ocr-pck.eu --non-interactive --agree-tos -m
+skany.hdkpck@pck.pomorze.pl -v
+docker stop nginx_proxy
+cp nginx/nginx-full-ssl.conf nginx/nginx.conf
+docker compose -f docker-compose-deploy.yaml up --build -d
+```
