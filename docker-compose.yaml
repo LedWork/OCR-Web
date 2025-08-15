@@ -21,6 +21,7 @@ services:
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - PASSWORD_VALIDITY_MINUTES=${PASSWORD_VALIDITY_MINUTES}
+      - WEB_SERVER_URL=${WEB_SERVER_URL}
     command: >
       sh -c "flask --app . run --debug --host=0.0.0.0"
 

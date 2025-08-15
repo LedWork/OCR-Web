@@ -19,10 +19,18 @@ This will create a `dist` folder inside `backend/flask-app/app`, which is requir
 ## 3. Preparing the Backend  
 Create a `.env` file in `backend/flask-app/app/app/` with the following template:  
 ```ini
-MAIL_SERVER=
-MAIL_PORT=
-MAIL_USERNAME=
-MAIL_PASSWORD=
+MAIL_SERVER=                    # SMTP server address (e.g., smtp.gmail.com)
+MAIL_PORT=                      # SMTP server port (e.g., 587 for TLS)
+MAIL_USERNAME=                  # Email address used for sending emails
+MAIL_PASSWORD=                  # Password or app-specific password for the email account
+WEB_SERVER_URL=                 # Full URL of the web server (e.g., https://ocr-pck.eu)
+ADMIN_LOGIN=                    # Login for the admin account
+ADMIN_PASSWORD=                 # Password for the admin account
+MODEL_API_KEY=                  # API key for the OCR model
+PASSWORD_VALIDITY_MINUTES=      # How long generated passwords remain valid (in minutes)
+MONGO_USER=                     # MongoDB username
+MONGO_PASSWORD=                 # MongoDB password
+SECRET_KEY=                     # Secret key for Flask session encryption, CSRF protection, and secure cookie signing
 ```
 By default, the configuration uses **TLS**, but this can be changed in `__init__.py` within the same directory as the `.env` file.  
 

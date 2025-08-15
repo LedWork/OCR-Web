@@ -3,6 +3,7 @@ import string
 import random
 import bcrypt
 import logging
+import os
 from app.core.db import get_db
 from app import mail
 from flask_mail import Message
@@ -102,6 +103,9 @@ def send_password_mail(email, password):
         else:
             validity_text = f"{validity_minutes} minut"
 
+        # Get web server URL from environment variable or use default
+        web_server_url = os.getenv('WEB_SERVER_URL', 'https://ocr-pck.eu') + '/login'
+
         msg = Message(
             subject='Hasło do konta w programie OCR-PCK.',
             sender=mail.default_sender,
@@ -113,6 +117,8 @@ def send_password_mail(email, password):
                     Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Państwa konta zostało utworzone.
                     
                     Hasło: {password}
+
+                    Adres logowania: {web_server_url}
 
                     Hasło będzie ważne przez {validity_text}. Po tym czasie będzie trzeba wygenerować nowe hasło.
                     Prosimy o zachowanie tego hasła w bezpiecznym miejscu. W razie jakichkolwiek pytań lub wątpliwości, prosimy o kontakt.
