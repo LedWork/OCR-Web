@@ -110,7 +110,7 @@ def send_password_mail(email, password):
         msg.body = f"""
                     Szanowni Państwo,
                     
-                    Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Twojego konta zostało utworzone.
+                    Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Państwa konta zostało utworzone.
                     
                     Hasło: {password}
 
