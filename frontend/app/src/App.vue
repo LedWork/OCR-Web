@@ -59,8 +59,8 @@ html, body {
 }
 
 .content-container {
-  padding-top: 50px;
-  min-height: calc(100vh - 120px); /* Account for navbar and footer */
+  padding-top: 80px; /* Increased padding to account for fixed navbar */
+  min-height: calc(100vh - 140px); /* Account for navbar and footer */
   padding-bottom: 60px; /* Add space for footer */
 }
 

@@ -105,7 +105,7 @@ export default {
 </script>
 
 <template>
-  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="!loading">
+  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1" v-if="!loading">
     <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
       <div class="row w-100 mb-2">
         <div class="d-flex justify-content-between">
