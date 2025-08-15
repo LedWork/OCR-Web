@@ -3,6 +3,7 @@ import string
 import random
 import bcrypt
 import logging
+import os
 from app.core.db import get_db
 from app import mail
 from flask_mail import Message
@@ -31,6 +32,65 @@ def user_exists(data):
     return exists
 
 
+def send_welcome_email(email):
+    """Send welcome email to newly registered user"""
+    try:
+        logger.info(f"Attempting to send welcome email to: {email}")
+        
+        # Check if mail configuration is properly set
+        if not mail.app.config.get('MAIL_SERVER'):
+            logger.error("MAIL_SERVER not configured")
+            return False
+            
+        if not mail.app.config.get('MAIL_USERNAME'):
+            logger.error("MAIL_USERNAME not configured")
+            return False
+            
+        if not mail.app.config.get('MAIL_PASSWORD'):
+            logger.error("MAIL_PASSWORD not configured")
+            return False
+
+        # Get web server URL from environment variable or use default
+        web_server_url = os.getenv('WEB_SERVER_URL', 'https://ocr-pck.eu')
+
+        msg = Message(
+            subject='Witamy w programie OCR-PCK - Konto zostało utworzone',
+            sender=mail.default_sender,
+            recipients=[email]
+        )
+        msg.body = f"""
+                    Szanowni Państwo,
+                    
+                    Witamy serdecznie w programie OCR-PCK! Dziękujemy za dołączenie i udział w naszym projekcie.
+                    
+                    Aby rozpocząć pracę z systemem, prosimy o:
+                    
+                    1. Przejście na stronę: {web_server_url}
+                    2. Wprowadzenie swojego adresu email (tego samego, który został użyty podczas rejestracji)
+                    3. Kliknięcie przycisku "Wyślij hasło" - otrzymają Państwo tymczasowe hasło na podany adres email
+                    4. Przejście na stronę logowania: {web_server_url}/login i wprowadzenie otrzymanego hasła
+                    
+                    Hasło tymczasowe będzie ważne przez ograniczony czas.
+                    
+                    W razie jakichkolwiek pytań lub problemów, prosimy o kontakt pod adresem: skany.hdkpck@pck.pomorze.pl
+                    
+                    Z poważaniem,
+                    Zespół OCR-PCK
+                    """
+
+        logger.info(f"Preparing to send welcome email to {email}")
+        mail.send(msg)
+        logger.info(f"Welcome email sent successfully to: {email}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Failed to send welcome email to {email}: {str(e)}")
+        logger.error(f"Mail configuration - Server: {mail.app.config.get('MAIL_SERVER')}, "
+                    f"Port: {mail.app.config.get('MAIL_PORT')}, "
+                    f"Username: {mail.app.config.get('MAIL_USERNAME')}")
+        return False
+
+
 def create_user(data):
     logger.info(f"Creating user with data: {data}")
     db = get_db()
@@ -44,7 +104,16 @@ def create_user(data):
     logger.info(f"Inserting user with prepared data: {data}")
     result = collection.insert_one(data)
     logger.info(f"User created successfully with ID: {result.inserted_id}")
-    return result.inserted_id
+    
+    # Send welcome email to the newly created user
+    email = data['login']
+    email_sent = send_welcome_email(email)
+    if email_sent:
+        logger.info(f"Welcome email sent successfully to {email}")
+    else:
+        logger.warning(f"Failed to send welcome email to {email}, but user was created successfully")
+    
+    return result.inserted_id, email_sent
 
 def generate_user_password(login):
     logger.info(f"Generating password for user with login: {login}")
@@ -102,6 +171,9 @@ def send_password_mail(email, password):
         else:
             validity_text = f"{validity_minutes} minut"
 
+        # Get web server URL from environment variable or use default
+        web_server_url = os.getenv('WEB_SERVER_URL', 'https://ocr-pck.eu') + '/login'
+
         msg = Message(
             subject='Hasło do konta w programie OCR-PCK.',
             sender=mail.default_sender,
@@ -110,9 +182,11 @@ def send_password_mail(email, password):
         msg.body = f"""
                     Szanowni Państwo,
                     
-                    Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Twojego konta zostało utworzone.
+                    Witamy serdecznie w naszym programie! Dziękujemy za dołączenie i udział. Z radością informujemy, że hasło do Państwa konta zostało utworzone.
                     
                     Hasło: {password}
+
+                    Adres logowania: {web_server_url}
 
                     Hasło będzie ważne przez {validity_text}. Po tym czasie będzie trzeba wygenerować nowe hasło.
                     Prosimy o zachowanie tego hasła w bezpiecznym miejscu. W razie jakichkolwiek pytań lub wątpliwości, prosimy o kontakt.

@@ -53,8 +53,14 @@ def add_user():
         if user_exists(data):
             return jsonify({"message": "user with this login already exists"}), 400
 
-        create_user(data)
-        return {"message": f"user added sucessfully!"}, 200
+        user_id, email_sent = create_user(data)
+        
+        # Provide feedback based on email sending result
+        email = data['login']
+        if email_sent:
+            return jsonify({"message": f"User added successfully! Welcome email sent to {email}"}), 200
+        else:
+            return jsonify({"message": f"User added successfully, but failed to send welcome email to {email}"}), 200
     except Exception as e:
         return jsonify({"message": f"Failed to add user: {str(e)}"}), 500
 
