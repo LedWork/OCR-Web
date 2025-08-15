@@ -16,12 +16,13 @@ export default {
       search: '',
       selectedItems: [],
       tableHeaders: [
+        { text: 'Select', value: 'select', sortable: false, width: 60 },
         { text: 'Image Code', value: 'image_code', sortable: true },
         { text: 'Check Status', value: 'check_status', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
-        { text: 'Actions', value: 'actions', sortable: false },
+        { text: 'Actions', value: 'actions', sortable: false, width: 120 },
       ],
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
@@ -29,25 +30,35 @@ export default {
   },
   computed: {
     filteredCards() {
-      console.log('Computing filteredCards, cards:', this.cards);
       const filtered = (this.cards || []).filter(card => {
-        console.log('Checking card:', card);
-        return card && card.image_code;
+        if (!card || !card.image_code) return false;
+        
+        // Apply search filter
+        if (this.search) {
+          const searchLower = this.search.toLowerCase();
+          const imageCode = (card.image_code || '').toLowerCase();
+          const checkStatus = (card.check_status || '').toLowerCase();
+          return imageCode.includes(searchLower) || checkStatus.includes(searchLower);
+        }
+        
+        return true;
       });
-      console.log('Filtered result:', filtered);
       
       // Transform data to ensure Vue3EasyDataTable compatibility
-      const transformed = filtered.map(card => ({
-        ...card,
-        // Ensure all required fields are present
-        image_code: card.image_code || '',
-        check_status: card.check_status || '',
-        is_green: Boolean(card.is_green),
-        current_checks: card.current_checks || 0,
-        expected_checks: card.expected_checks || 0
-      }));
+      const transformed = filtered.map(card => {
+        if (!card) return null;
+        
+        return {
+          ...card,
+          // Ensure all required fields are present with safe defaults
+          image_code: card.image_code || '',
+          check_status: card.check_status || '',
+          is_green: Boolean(card.is_green),
+          current_checks: parseInt(card.current_checks) || 0,
+          expected_checks: parseInt(card.expected_checks) || 0
+        };
+      }).filter(Boolean); // Remove any null items
       
-      console.log('Transformed cards:', transformed);
       return transformed;
     },
     selectedCount() {
@@ -77,17 +88,7 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get('/api/admin/cards')
-        console.log('Raw response:', response);
-        console.log('Response data:', response.data);
-        console.log('Response data type:', typeof response.data);
-        console.log('Response data length:', Array.isArray(response.data) ? response.data.length : 'Not an array');
         this.cards = response.data;
-        console.log('Fetched cards:', this.cards);
-        console.log('Cards length:', this.cards.length);
-        if (this.cards.length > 0) {
-          console.log('First card:', this.cards[0]);
-          console.log('First card keys:', Object.keys(this.cards[0]));
-        }
       }
       catch (error) {
         console.error('Error fetching cards:', error);
@@ -289,82 +290,14 @@ export default {
       </div>
     </div>
 
-    <!-- Debug Info -->
-    <div class="row mb-3" v-if="cards.length > 0">
-      <div class="col-12">
-        <div class="card bg-light">
-          <div class="card-body">
-            <h6>Debug Info:</h6>
-            <p>Total cards: {{ cards.length }}</p>
-            <p>Filtered cards: {{ filteredCards.length }}</p>
-            <p>Search value: "{{ search }}"</p>
-            <p>First card: {{ JSON.stringify(cards[0]) }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Fallback Table (if Vue3EasyDataTable doesn't work) -->
-    <div class="row mb-3" v-if="filteredCards.length > 0">
-      <div class="col-12">
-        <div class="card">
-          <div class="card-header">
-            <h6>Cards Data (Fallback View)</h6>
-          </div>
-          <div class="card-body">
-            <div class="table-responsive">
-              <table class="table table-striped">
-                <thead>
-                  <tr>
-                    <th>Image Code</th>
-                    <th>Check Status</th>
-                    <th>Is Green</th>
-                    <th>Current Checks</th>
-                    <th>Expected Checks</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr v-for="card in filteredCards" :key="card.image_code">
-                    <td>{{ card.image_code }}</td>
-                    <td>
-                      <span :class="card.is_green ? 'badge bg-success' : 'badge bg-secondary'">
-                        {{ card.check_status }}
-                      </span>
-                    </td>
-                    <td>
-                      <i :class="card.is_green ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-muted'"></i>
-                    </td>
-                    <td><span class="badge bg-primary">{{ card.current_checks }}</span></td>
-                    <td><span class="badge bg-secondary">{{ card.expected_checks }}</span></td>
-                    <td>
-                      <div class="d-flex gap-1">
-                        <button class="btn btn-sm btn-info text-white" @click="viewImage(card.image_code)" title="View Card">
-                          <i class="bi bi-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger" @click="deleteImage(card.image_code)" title="Delete Card">
-                          <i class="bi bi-trash"></i>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- Data Table -->
     <div class="row">
       <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h6>Vue3EasyDataTable (Main Table)</h6>
+            <h6 class="mb-0">Cards Data</h6>
           </div>
           <div class="card-body p-0">
-            <!-- Minimal Vue3EasyDataTable for testing -->
             <Vue3EasyDataTable
               :headers="tableHeaders"
               :items="filteredCards"
@@ -372,7 +305,71 @@ export default {
               table-class-name="customize-table"
               :show-index="true"
               theme-color="#007bff"
-            />
+              :rows-per-page="itemsPerPage"
+              :rows-per-page-options="itemsPerPageOptions"
+              :select-options="{
+                enable: true,
+                selectOnCheckboxOnly: true,
+                selectAllByGroup: true
+              }"
+              @selection-change="onSelectionChange"
+            >
+              <!-- Custom template for select column -->
+              <template #item-select="{ item }">
+                <input 
+                  v-if="item"
+                  type="checkbox" 
+                  :checked="selectedItems.includes(item)"
+                  @change="onSelectionChange([...selectedItems, item])"
+                  class="form-check-input"
+                >
+              </template>
+
+              <!-- Custom template for check status -->
+              <template #item-check_status="{ item }">
+                <span v-if="item" :class="item.is_green ? 'badge bg-success' : 'badge bg-secondary'">
+                  {{ item.check_status || '' }}
+                </span>
+              </template>
+
+              <!-- Custom template for is_green -->
+              <template #item-is_green="{ item }">
+                <div v-if="item">
+                  <i :class="item.is_green ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-muted'"></i>
+                  {{ item.is_green ? 'Yes' : 'No' }}
+                </div>
+              </template>
+
+              <!-- Custom template for current_checks -->
+              <template #item-current_checks="{ item }">
+                <span v-if="item" class="badge bg-primary">{{ item.current_checks || 0 }}</span>
+              </template>
+
+              <!-- Custom template for expected_checks -->
+              <template #item-expected_checks="{ item }">
+                <span v-if="item" class="badge bg-secondary">{{ item.expected_checks || 0 }}</span>
+              </template>
+
+              <!-- Custom template for actions -->
+              <template #item-actions="{ item }">
+                <div v-if="item" class="d-flex gap-1">
+                  <button 
+                    class="btn btn-sm btn-info text-white" 
+                    @click="viewImage(item.image_code)" 
+                    title="View Card"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-danger" 
+                    @click="deleteImage(item.image_code)" 
+                    title="Delete Card"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </template>
+            </Vue3EasyDataTable>
           </div>
         </div>
       </div>
@@ -409,10 +406,6 @@ export default {
   --easy-table-loading-mask-color: #495057;
   --easy-table-loading-mask-opacity: 0.5;
   --easy-table-loading-mask-z-index: 1;
-  --easy-table-loading-mask-background-color: rgba(255, 255, 255, 0.5);
-  --easy-table-loading-mask-color: #495057;
-  --easy-table-loading-mask-opacity: 0.5;
-  --easy-table-loading-mask-z-index: 1;
 }
 
 .card {
@@ -427,5 +420,19 @@ export default {
 .spinner-border-sm {
   width: 1rem;
   height: 1rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.form-check-input {
+  cursor: pointer;
 }
 </style>
