@@ -16,13 +16,11 @@ export default {
       search: '',
       selectedItems: [],
       tableHeaders: [
-        { text: 'Select', value: 'select', sortable: false, width: 60 },
         { text: 'Image Code', value: 'image_code', sortable: true },
         { text: 'Check Status', value: 'check_status', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
-        { text: 'Actions', value: 'actions', sortable: false, width: 120 },
       ],
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
@@ -53,7 +51,7 @@ export default {
           // Ensure all required fields are present with safe defaults
           image_code: card.image_code || '',
           check_status: card.check_status || '',
-          is_green: Boolean(card.is_green),
+          is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
           expected_checks: parseInt(card.expected_checks) || 0
         };
@@ -313,63 +311,28 @@ export default {
                 selectAllByGroup: true
               }"
               @selection-change="onSelectionChange"
-            >
-              <!-- Custom template for select column -->
-              <template #item-select="{ item }">
-                <input 
-                  v-if="item"
-                  type="checkbox" 
-                  :checked="selectedItems.includes(item)"
-                  @change="onSelectionChange([...selectedItems, item])"
-                  class="form-check-input"
+            />
+            
+            <!-- Action buttons for selected items -->
+            <div v-if="selectedItems.length > 0" class="mt-3 p-3 bg-light border rounded">
+              <h6>Actions for Selected Items ({{ selectedItems.length }})</h6>
+              <div class="d-flex gap-2">
+                <button 
+                  class="btn btn-sm btn-info text-white" 
+                  @click="viewImage(selectedItems[0].image_code)" 
+                  title="View First Selected Card"
                 >
-              </template>
-
-              <!-- Custom template for check status -->
-              <template #item-check_status="{ item }">
-                <span v-if="item" :class="item.is_green ? 'badge bg-success' : 'badge bg-secondary'">
-                  {{ item.check_status || '' }}
-                </span>
-              </template>
-
-              <!-- Custom template for is_green -->
-              <template #item-is_green="{ item }">
-                <div v-if="item">
-                  <i :class="item.is_green ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-muted'"></i>
-                  {{ item.is_green ? 'Yes' : 'No' }}
-                </div>
-              </template>
-
-              <!-- Custom template for current_checks -->
-              <template #item-current_checks="{ item }">
-                <span v-if="item" class="badge bg-primary">{{ item.current_checks || 0 }}</span>
-              </template>
-
-              <!-- Custom template for expected_checks -->
-              <template #item-expected_checks="{ item }">
-                <span v-if="item" class="badge bg-secondary">{{ item.expected_checks || 0 }}</span>
-              </template>
-
-              <!-- Custom template for actions -->
-              <template #item-actions="{ item }">
-                <div v-if="item" class="d-flex gap-1">
-                  <button 
-                    class="btn btn-sm btn-info text-white" 
-                    @click="viewImage(item.image_code)" 
-                    title="View Card"
-                  >
-                    <i class="bi bi-eye"></i>
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-danger" 
-                    @click="deleteImage(item.image_code)" 
-                    title="Delete Card"
-                  >
-                    <i class="bi bi-trash"></i>
-                  </button>
-                </div>
-              </template>
-            </Vue3EasyDataTable>
+                  <i class="bi bi-eye"></i> View First
+                </button>
+                <button 
+                  class="btn btn-sm btn-danger" 
+                  @click="deleteSelected" 
+                  title="Delete Selected Cards"
+                >
+                  <i class="bi bi-trash"></i> Delete Selected
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
