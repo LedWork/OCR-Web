@@ -281,8 +281,8 @@ export default {
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
           card.expected_checks,
-          card.created_at,
-          card.updated_at
+          card.created_at || '',
+          card.updated_at || ''
         ].join(','))
       ].join('\n');
       
@@ -294,11 +294,33 @@ export default {
       a.click();
       window.URL.revokeObjectURL(url);
     },
-    formatDate(dateString) {
-      if (!dateString) return '';
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return dateString; // Handle invalid dates
-      return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    formatDate(dateInput) {
+      if (!dateInput) return '';
+      
+      let date;
+      
+      // Handle BSON date objects from MongoDB
+      if (typeof dateInput === 'object' && dateInput.$date) {
+        date = new Date(dateInput.$date);
+      } else if (dateInput instanceof Date) {
+        date = dateInput;
+      } else {
+        // Handle ISO string dates
+        date = new Date(dateInput);
+      }
+      
+      if (isNaN(date.getTime())) return '';
+      
+      // Format as DD-MM-YYYY HH:MM:SS in UTC
+      // Use getUTCDate() methods to ensure UTC time display
+      const day = String(date.getUTCDate()).padStart(2, '0');
+      const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+      const year = date.getUTCFullYear();
+      const hours = String(date.getUTCHours()).padStart(2, '0');
+      const minutes = String(date.getUTCMinutes()).padStart(2, '0');
+      const seconds = String(date.getUTCSeconds()).padStart(2, '0');
+      
+      return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
     }
   },
   async mounted(){
