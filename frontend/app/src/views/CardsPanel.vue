@@ -36,6 +36,7 @@ export default {
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
         { text: 'Created Date', value: 'created_at', sortable: true },
+        { text: 'Updated Date', value: 'updated_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, width: 150 },
       ],
       itemsPerPage: 10,
@@ -125,7 +126,8 @@ export default {
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
           expected_checks: parseInt(card.expected_checks) || 0,
-          created_at: card.created_at ? new Date(card.created_at).toLocaleDateString('pl-PL') : '',
+          created_at: card.created_at ? this.formatDate(card.created_at) : '',
+          updated_at: card.updated_at ? this.formatDate(card.updated_at) : '',
         };
       }).filter(Boolean); // Remove any null items
       
@@ -270,7 +272,7 @@ export default {
         return;
       }
       
-      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date'];
+      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date', 'Updated Date'];
       const csvContent = [
         headers.join(','),
         ...this.filteredCards.map(card => [
@@ -279,7 +281,8 @@ export default {
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
           card.expected_checks,
-          card.created_at
+          card.created_at,
+          card.updated_at
         ].join(','))
       ].join('\n');
       
@@ -291,6 +294,12 @@ export default {
       a.click();
       window.URL.revokeObjectURL(url);
     },
+    formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return dateString; // Handle invalid dates
+      return date.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    }
   },
   async mounted(){
     this.admin = await adminCheckSession(this.$router);

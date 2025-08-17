@@ -1,5 +1,6 @@
 import logging
 from bson import ObjectId
+from datetime import datetime
 from app.core.db import get_db
 from app.core.utils import EXPECTED_CHECKS_PER_CARD
 from app.image.model import delete_image
@@ -39,12 +40,20 @@ def load_card_to_db(json_data):
                         "error": f"Card with the same image code already exists: "
                                  f"and was checked already. Skipped insertion"}, 200
                 else:
+                    # Update existing card with new data and updated timestamp
+                    update_data = json_data.copy()
+                    update_data['updated_at'] = datetime.utcnow()
+                    
                     db.collection.update_one(
                         {'_id': ObjectId(existing_card['_id'])},
-                        {'$set': json_data}
+                        {'$set': update_data}
                     )
                     return {"message": f"Card with _id {json_data.get('image_code')} was updated with new data."}, 200
 
+            # Add timestamps for new card
+            json_data['created_at'] = datetime.utcnow()
+            json_data['updated_at'] = datetime.utcnow()
+            
             mark_unchecked(json_data)
             result = collection.insert_one(json_data)
             print(f"Data inserted with ID: {result.inserted_id}")
@@ -87,6 +96,8 @@ def update_card(card_id, data):
     db = get_db()
     collection = db['cards']
     try:
+        # Add updated timestamp
+        data['updated_at'] = datetime.utcnow()
         collection.update_one({"_id": ObjectId(card_id)}, {"$set": data})
         return True
     except Exception as e:
@@ -173,7 +184,7 @@ def find_card_by_image_code(card_image_code):
 def retrieve_all_image_codes_from_cards():
     db = get_db()
     collection = db['cards']
-    cards = collection.find({}, {"image_code": 1, "correct": 1, "checked_by": 1, "_id": 0})
+    cards = collection.find({}, {"image_code": 1, "correct": 1, "checked_by": 1, "created_at": 1, "updated_at": 1, "_id": 0})
     
     # Expected number of checks per card (from the system configuration)
     
@@ -194,7 +205,9 @@ def retrieve_all_image_codes_from_cards():
             "check_status": f"[{current_checks}/{EXPECTED_CHECKS_PER_CARD}]",
             "is_green": is_green,
             "current_checks": current_checks,
-            "expected_checks": EXPECTED_CHECKS_PER_CARD
+            "expected_checks": EXPECTED_CHECKS_PER_CARD,
+            "created_at": card.get("created_at"),
+            "updated_at": card.get("updated_at")
         })
     
     return cards_list
