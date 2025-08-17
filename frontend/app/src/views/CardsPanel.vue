@@ -148,9 +148,6 @@ export default {
         alert('Error deleting selected cards');
       }
     },
-    onSelectionChange(items) {
-      this.selectedItems = items;
-    },
     clearSelection() {
       this.selectedItems = [];
     },
@@ -305,12 +302,12 @@ export default {
               theme-color="#007bff"
               :rows-per-page="itemsPerPage"
               :rows-per-page-options="itemsPerPageOptions"
+              v-model:items-selected="selectedItems"
               :select-options="{
                 enable: true,
                 selectOnCheckboxOnly: true,
                 selectAllByGroup: true
               }"
-              @selection-change="onSelectionChange"
             />
             
             <!-- Action buttons for selected items -->

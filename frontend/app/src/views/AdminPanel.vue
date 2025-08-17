@@ -197,9 +197,9 @@ export default {
         <div class="col-12 col-md-auto mb-2 mb-md-0">
           <button @click="goToInstruction" class="btn btn-danger btn-lg w-100">Wróć</button>
         </div>
-        <div class="col-12 col-md mb-2 mb-md-0 d-flex justify-content-center">
+        <div class="col-12 col-md mb-2 mb-md-0 d-flex justify-content-center gap-2">
           <button @click="goToCardsPanel"
-                  class="btn btn-info text-white btn-lg w-100"
+                  class="btn btn-info text-white btn-lg"
                   style="width: auto; max-width: 300px;">
             Panel kart</button>
         </div>
