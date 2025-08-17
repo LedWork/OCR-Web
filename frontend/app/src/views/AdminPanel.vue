@@ -201,7 +201,8 @@ export default {
           <button @click="goToCardsPanel"
                   class="btn btn-info text-white btn-lg"
                   style="width: auto; max-width: 300px;">
-            Panel kart</button>
+            <i class="bi bi-table"></i> Panel kart
+          </button>
         </div>
         <div class="col-12 col-md-auto">
           <button @click="logout" class="btn btn-danger btn-lg w-100">Wyloguj</button>

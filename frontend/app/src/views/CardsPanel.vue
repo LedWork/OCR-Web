@@ -15,20 +15,44 @@ export default {
       loading: false,
       search: '',
       selectedItems: [],
+      // Advanced filters
+      filters: {
+        checkStatus: '',
+        isGreen: '',
+        currentChecks: '',
+        expectedChecks: '',
+        dateRange: {
+          start: '',
+          end: ''
+        }
+      },
+      // Sort configuration
+      sortBy: 'image_code',
+      sortDesc: false,
       tableHeaders: [
         { text: 'Image Code', value: 'image_code', sortable: true },
         { text: 'Check Status', value: 'check_status', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
+        { text: 'Created Date', value: 'created_at', sortable: true },
+        { text: 'Actions', value: 'actions', sortable: false },
       ],
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
+      // Filter options
+      checkStatusOptions: ['pending', 'in_progress', 'completed', 'verified', 'rejected'],
+      booleanOptions: [
+        { text: 'All', value: '' },
+        { text: 'Yes', value: 'true' },
+        { text: 'No', value: 'false' }
+      ],
+      showAdvancedFilters: false,
     }
   },
   computed: {
     filteredCards() {
-      const filtered = (this.cards || []).filter(card => {
+      let filtered = (this.cards || []).filter(card => {
         if (!card || !card.image_code) return false;
         
         // Apply search filter
@@ -36,11 +60,58 @@ export default {
           const searchLower = this.search.toLowerCase();
           const imageCode = (card.image_code || '').toLowerCase();
           const checkStatus = (card.check_status || '').toLowerCase();
-          return imageCode.includes(searchLower) || checkStatus.includes(searchLower);
+          const currentChecks = (card.current_checks || '').toString();
+          const expectedChecks = (card.expected_checks || '').toString();
+          
+          return imageCode.includes(searchLower) || 
+                 checkStatus.includes(searchLower) ||
+                 currentChecks.includes(searchLower) ||
+                 expectedChecks.includes(searchLower);
         }
         
         return true;
       });
+      
+      // Apply advanced filters
+      if (this.filters.checkStatus) {
+        filtered = filtered.filter(card => card.check_status === this.filters.checkStatus);
+      }
+      
+      if (this.filters.isGreen !== '') {
+        const isGreen = this.filters.isGreen === 'true';
+        filtered = filtered.filter(card => card.is_green === isGreen);
+      }
+      
+      if (this.filters.currentChecks) {
+        const currentChecks = parseInt(this.filters.currentChecks);
+        filtered = filtered.filter(card => parseInt(card.current_checks) === currentChecks);
+      }
+      
+      if (this.filters.expectedChecks) {
+        const expectedChecks = parseInt(this.filters.expectedChecks);
+        filtered = filtered.filter(card => parseInt(card.expected_checks) === expectedChecks);
+      }
+      
+      // Apply date range filter if dates are set
+      if (this.filters.dateRange.start || this.filters.dateRange.end) {
+        filtered = filtered.filter(card => {
+          if (!card.created_at) return true;
+          
+          const cardDate = new Date(card.created_at);
+          const startDate = this.filters.dateRange.start ? new Date(this.filters.dateRange.start) : null;
+          const endDate = this.filters.dateRange.end ? new Date(this.filters.dateRange.end) : null;
+          
+          if (startDate && endDate) {
+            return cardDate >= startDate && cardDate <= endDate;
+          } else if (startDate) {
+            return cardDate >= startDate;
+          } else if (endDate) {
+            return cardDate <= endDate;
+          }
+          
+          return true;
+        });
+      }
       
       // Transform data to ensure Vue3EasyDataTable compatibility
       const transformed = filtered.map(card => {
@@ -53,7 +124,10 @@ export default {
           check_status: card.check_status || '',
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
-          expected_checks: parseInt(card.expected_checks) || 0
+          expected_checks: parseInt(card.expected_checks) || 0,
+          created_at: card.created_at ? new Date(card.created_at).toLocaleDateString('pl-PL') : '',
+          // Add actions column data
+          actions: card.image_code
         };
       }).filter(Boolean); // Remove any null items
       
@@ -61,6 +135,22 @@ export default {
     },
     selectedCount() {
       return this.selectedItems.length;
+    },
+    // Get unique values for filter options
+    uniqueCheckStatuses() {
+      const statuses = [...new Set(this.cards.map(card => card.check_status).filter(Boolean))];
+      return statuses.sort();
+    },
+    // Filter summary
+    activeFiltersCount() {
+      let count = 0;
+      if (this.search) count++;
+      if (this.filters.checkStatus) count++;
+      if (this.filters.isGreen !== '') count++;
+      if (this.filters.currentChecks) count++;
+      if (this.filters.expectedChecks) count++;
+      if (this.filters.dateRange.start || this.filters.dateRange.end) count++;
+      return count;
     },
   },
   methods: {
@@ -151,21 +241,47 @@ export default {
     clearSelection() {
       this.selectedItems = [];
     },
+    // Clear all filters
+    clearAllFilters() {
+      this.search = '';
+      this.filters = {
+        checkStatus: '',
+        isGreen: '',
+        currentChecks: '',
+        expectedChecks: '',
+        dateRange: {
+          start: '',
+          end: ''
+        }
+      };
+      this.sortBy = 'image_code';
+      this.sortDesc = false;
+    },
+    // Toggle advanced filters
+    toggleAdvancedFilters() {
+      this.showAdvancedFilters = !this.showAdvancedFilters;
+    },
+    // Handle sorting
+    handleSort(column, direction) {
+      this.sortBy = column;
+      this.sortDesc = direction === 'desc';
+    },
     exportToCSV() {
       if (this.cards.length === 0) {
         alert('No data to export');
         return;
       }
       
-      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks'];
+      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date'];
       const csvContent = [
         headers.join(','),
-        ...this.cards.map(card => [
+        ...this.filteredCards.map(card => [
           card.image_code,
           card.check_status,
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
-          card.expected_checks
+          card.expected_checks,
+          card.created_at
         ].join(','))
       ].join('\n');
       
@@ -253,13 +369,28 @@ export default {
           <input 
             type="text" 
             class="form-control" 
-            placeholder="Search by image code or status..."
+            placeholder="Search by image code, status, or numbers..."
             v-model="search"
           >
+          <button 
+            @click="toggleAdvancedFilters" 
+            class="btn btn-outline-secondary"
+            type="button"
+          >
+            <i class="bi bi-funnel"></i>
+            Filters {{ activeFiltersCount > 0 ? `(${activeFiltersCount})` : '' }}
+          </button>
         </div>
       </div>
       <div class="col-md-6">
         <div class="d-flex gap-2 justify-content-end">
+          <button 
+            @click="clearAllFilters" 
+            class="btn btn-outline-warning"
+            :disabled="activeFiltersCount === 0"
+          >
+            <i class="bi bi-x-circle"></i> Clear Filters
+          </button>
           <button 
             @click="clearSelection" 
             class="btn btn-outline-secondary"
@@ -285,12 +416,111 @@ export default {
       </div>
     </div>
 
+    <!-- Advanced Filters -->
+    <div v-if="showAdvancedFilters" class="row mb-3">
+      <div class="col-12">
+        <div class="card filters-card">
+          <div class="card-header">
+            <h6 class="mb-0">
+              <i class="bi bi-funnel"></i> Advanced Filters
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row g-3">
+              <!-- Check Status Filter -->
+              <div class="col-md-3">
+                <label class="form-label">Check Status</label>
+                <select v-model="filters.checkStatus" class="form-select">
+                  <option value="">All Statuses</option>
+                  <option v-for="status in uniqueCheckStatuses" :key="status" :value="status">
+                    {{ status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ') }}
+                  </option>
+                </select>
+              </div>
+              
+              <!-- Is Green Filter -->
+              <div class="col-md-3">
+                <label class="form-label">Is Green</label>
+                <select v-model="filters.isGreen" class="form-select">
+                  <option v-for="option in booleanOptions" :key="option.value" :value="option.value">
+                    {{ option.text }}
+                  </option>
+                </select>
+              </div>
+              
+              <!-- Current Checks Filter -->
+              <div class="col-md-3">
+                <label class="form-label">Current Checks</label>
+                <input 
+                  type="number" 
+                  v-model="filters.currentChecks" 
+                  class="form-control" 
+                  placeholder="Exact number"
+                  min="0"
+                >
+              </div>
+              
+              <!-- Expected Checks Filter -->
+              <div class="col-md-3">
+                <label class="form-label">Expected Checks</label>
+                <input 
+                  type="number" 
+                  v-model="filters.expectedChecks" 
+                  class="form-control" 
+                  placeholder="Exact number"
+                  min="0"
+                >
+              </div>
+              
+              <!-- Date Range Filters -->
+              <div class="col-md-6">
+                <label class="form-label">Date Range</label>
+                <div class="input-group">
+                  <input 
+                    type="date" 
+                    v-model="filters.dateRange.start" 
+                    class="form-control"
+                    placeholder="Start date"
+                  >
+                  <span class="input-group-text">to</span>
+                  <input 
+                    type="date" 
+                    v-model="filters.dateRange.end" 
+                    class="form-control"
+                    placeholder="End date"
+                  >
+                </div>
+              </div>
+              
+              <!-- Filter Summary -->
+              <div class="col-md-6 d-flex align-items-end">
+                <div class="text-muted">
+                  <small>
+                    Showing {{ filteredCards.length }} of {{ cards.length }} cards
+                    <span v-if="activeFiltersCount > 0" class="filters-indicator">
+                      {{ activeFiltersCount }}
+                    </span>
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Data Table -->
     <div class="row">
       <div class="col-12">
         <div class="card">
-          <div class="card-header">
+          <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0">Cards Data</h6>
+            <div class="d-flex gap-2 align-items-center">
+              <small class="text-muted">
+                Sorted by: <strong>{{ sortBy }}</strong> 
+                <i :class="sortDesc ? 'bi bi-sort-down' : 'bi bi-sort-up'"></i>
+              </small>
+            </div>
           </div>
           <div class="card-body p-0">
             <Vue3EasyDataTable
@@ -308,6 +538,9 @@ export default {
                 selectOnCheckboxOnly: true,
                 selectAllByGroup: true
               }"
+              @sort="handleSort"
+              :sort-by="sortBy"
+              :sort-type="sortDesc ? 'desc' : 'asc'"
             />
             
             <!-- Action buttons for selected items -->
@@ -394,5 +627,98 @@ export default {
 
 .form-check-input {
   cursor: pointer;
+}
+
+/* Filter styles */
+.filters-card {
+  border-left: 4px solid #007bff;
+}
+
+.filters-card .card-header {
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.form-label {
+  font-weight: 500;
+  color: #495057;
+  margin-bottom: 0.5rem;
+}
+
+.form-select, .form-control {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-select:focus, .form-control:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Filter toggle button */
+.btn-outline-secondary:hover {
+  background-color: #6c757d;
+  border-color: #6c757d;
+  color: white;
+}
+
+/* Active filter indicator */
+.filters-indicator {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+/* Table header improvements */
+.card-header small {
+  font-size: 0.875rem;
+}
+
+.card-header .bi {
+  margin-left: 0.25rem;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .col-md-3, .col-md-6 {
+    margin-bottom: 1rem;
+  }
+  
+  .d-flex.gap-2 {
+    flex-wrap: wrap;
+  }
+  
+  .btn {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Loading states */
+.loading-overlay {
+  position: relative;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Filter summary styling */
+.filter-summary {
+  background-color: #e9ecef;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-size: 0.875rem;
+}
+
+/* Sort indicator */
+.sort-indicator {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.sort-indicator .bi {
+  margin-left: 0.25rem;
 }
 </style>
