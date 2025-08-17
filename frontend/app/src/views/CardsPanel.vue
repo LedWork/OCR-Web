@@ -36,7 +36,7 @@ export default {
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
         { text: 'Created Date', value: 'created_at', sortable: true },
-        { text: 'Actions', value: 'actions', sortable: false },
+        { text: 'Actions', value: 'actions', sortable: false, width: 150 },
       ],
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
@@ -126,8 +126,6 @@ export default {
           current_checks: parseInt(card.current_checks) || 0,
           expected_checks: parseInt(card.expected_checks) || 0,
           created_at: card.created_at ? new Date(card.created_at).toLocaleDateString('pl-PL') : '',
-          // Add actions column data
-          actions: card.image_code
         };
       }).filter(Boolean); // Remove any null items
       
@@ -541,28 +539,26 @@ export default {
               @sort="handleSort"
               :sort-by="sortBy"
               :sort-type="sortDesc ? 'desc' : 'asc'"
-            />
-            
-            <!-- Action buttons for selected items -->
-            <div v-if="selectedItems.length > 0" class="mt-3 p-3 bg-light border rounded">
-              <h6>Actions for Selected Items ({{ selectedItems.length }})</h6>
-              <div class="d-flex gap-2">
-                <button 
-                  class="btn btn-sm btn-info text-white" 
-                  @click="viewImage(selectedItems[0].image_code)" 
-                  title="View First Selected Card"
-                >
-                  <i class="bi bi-eye"></i> View First
-                </button>
-                <button 
-                  class="btn btn-sm btn-danger" 
-                  @click="deleteSelected" 
-                  title="Delete Selected Cards"
-                >
-                  <i class="bi bi-trash"></i> Delete Selected
-                </button>
-              </div>
-            </div>
+            >
+              <template #item-actions="{ item, index }">
+                <div class="d-flex gap-2">
+                  <button 
+                    class="btn btn-sm btn-info text-white" 
+                    @click="viewImage(filteredCards[index-1].image_code)" 
+                    title="View Card"
+                  >
+                    <i class="bi bi-eye"></i> View
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-danger" 
+                    @click="deleteImage(filteredCards[index-1].image_code)" 
+                    title="Delete Card"
+                  >
+                    <i class="bi bi-trash"></i> Delete
+                  </button>
+                </div>
+              </template>
+            </Vue3EasyDataTable>
           </div>
         </div>
       </div>
