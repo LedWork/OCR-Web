@@ -294,6 +294,47 @@ export default {
       a.click();
       window.URL.revokeObjectURL(url);
     },
+    async exportToJSON() {
+      // Check if there are selected items
+      if (this.selectedItems.length === 0) {
+        alert('Please select items to export');
+        return;
+      }
+      
+      try {
+        // Fetch full data for each selected card individually
+        const selectedImageCodes = this.selectedItems.map(item => item.image_code);
+        const fullCardDataPromises = selectedImageCodes.map(imageCode =>
+          axios.get(`/api/admin/card/${imageCode}`, {
+            headers: {
+              'X-CSRF-TOKEN': getCSRFToken(),
+            }
+          })
+        );
+        
+        const responses = await Promise.all(fullCardDataPromises);
+        const fullCardData = responses
+          .filter(response => response.status === 200 && response.data)
+          .map(response => response.data);
+        
+        if (fullCardData.length === 0) {
+          alert('No data found for selected cards');
+          return;
+        }
+        
+        // Create and download JSON file with full data for selected cards
+        const blob = new Blob([JSON.stringify(fullCardData, null, 2)], { type: 'application/json' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `selected_cards_json_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      } catch (error) {
+        console.error('Error exporting JSON:', error);
+        alert('Error exporting JSON data. Please try again.');
+      }
+    },
     formatDate(dateInput) {
       if (!dateInput) return '';
       
@@ -436,6 +477,9 @@ export default {
           </button>
           <button @click="exportToCSV" class="btn btn-success">
             <i class="bi bi-download"></i> Export CSV
+          </button>
+          <button @click="exportToJSON" class="btn btn-info" :disabled="selectedCount === 0">
+            <i class="bi bi-file-earmark-code"></i> Export JSON ({{ selectedCount }})
           </button>
           <button @click="fetchCards" class="btn btn-primary" :disabled="loading">
             <i class="bi bi-arrow-clockwise" :class="{ 'spinner-border spinner-border-sm': loading }"></i> 
