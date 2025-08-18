@@ -17,7 +17,8 @@
     "sass": "^1.83.4",
     "vue": "^3.5.12",
     "vue-router": "^4.4.5",
-    "vue3-splitpane": "^1.0.3"
+    "vue3-splitpane": "^1.0.3",
+    "vue3-easy-data-table": "^1.5.47"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
