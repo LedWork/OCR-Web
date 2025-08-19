@@ -38,6 +38,12 @@ export default {
         this.cardData = cardData;
       } catch (error) {
         console.log(error)
+        // Check if the error is due to no more cards available
+        if (error.response && error.response.status === 400 && 
+            error.response.data && error.response.data.error === "No cards available in the database.") {
+          // No more cards available, redirect to thanks view
+          this.$router.push({name: 'thanks'})
+        }
       }
     },
     updateJsonData(updatedValue) {
@@ -57,7 +63,10 @@ export default {
         if (response.status === 200) {
           // Load the next card instead of reloading the page
           await this.getCard()
-          this.image = await loadImage(this.imageCode)
+          // Only try to load image if we still have a card (getCard didn't redirect)
+          if (this.cardData) {
+            this.image = await loadImage(this.imageCode)
+          }
         } else {
           alert('Error: ' + response.data.error)
         }
@@ -95,7 +104,10 @@ export default {
       this.loadSplitPercent(); // Load saved split percentage
       // If we reach here, session is valid (checkSession would redirect if invalid)
       await this.getCard()
-      this.image = await loadImage(this.imageCode)
+      // Only try to load image if we have a card
+      if (this.cardData) {
+        this.image = await loadImage(this.imageCode)
+      }
     } catch (error) {
       console.error('Error in mounted:', error)
     } finally {
