@@ -615,18 +615,18 @@ export default {
               :sort-by="sortBy"
               :sort-type="sortDesc ? 'desc' : 'asc'"
             >
-              <template #item-actions="{ item, index }">
+              <template #item-actions="item">
                 <div class="d-flex gap-2">
                   <button 
                     class="btn btn-sm btn-info text-white" 
-                    @click="viewImage(filteredCards[index-1].image_code)" 
+                    @click="viewImage(item.image_code)" 
                     title="View Card"
                   >
                     <i class="bi bi-eye"></i> View
                   </button>
                   <button 
                     class="btn btn-sm btn-danger" 
-                    @click="deleteImage(filteredCards[index-1].image_code)" 
+                    @click="deleteImage(item.image_code)" 
                     title="Delete Card"
                   >
                     <i class="bi bi-trash"></i> Delete
