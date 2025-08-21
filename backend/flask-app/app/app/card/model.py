@@ -124,14 +124,23 @@ def get_random_card(user_id):
     db = get_db()
     collection = db['cards']
     try:
-        card = collection.find_one(
+        # Use MongoDB's $sample aggregation to get a random card efficiently
+        pipeline = [
             {
-                "correct": {"$lt": EXPECTED_CHECKS_PER_CARD},
-                "checked_by": {"$nin": [user_id]}
-             },
-            sort=[("correct", -1)]  # Sort by correctness in descending order
-        )
-        return card
+                "$match": {
+                    "correct": {"$lt": EXPECTED_CHECKS_PER_CARD},
+                    "checked_by": {"$nin": [user_id]}
+                }
+            },
+            {
+                "$sample": {"size": 1}
+            }
+        ]
+        
+        result = list(collection.aggregate(pipeline))
+        
+        # Return the random card if found, otherwise None
+        return result[0] if result else None
     except Exception as e:
         print(f"Error getting random card: {e}")
         return None
