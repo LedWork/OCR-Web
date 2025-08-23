@@ -12,6 +12,7 @@ export default {
     return {
       admin: false,
       cards: [],
+      systemInfo: {},
       loading: false,
       search: '',
       selectedItems: [],
@@ -19,7 +20,6 @@ export default {
       filters: {
         isGreen: '',
         currentChecks: '',
-        expectedChecks: '',
         dateRange: {
           start: '',
           end: ''
@@ -32,7 +32,6 @@ export default {
         { text: 'Image Code', value: 'image_code', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
-        { text: 'Expected Checks', value: 'expected_checks', sortable: true },
         { text: 'Created Date', value: 'created_at', sortable: true },
         { text: 'Updated Date', value: 'updated_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, width: 150 },
@@ -58,11 +57,9 @@ export default {
           const searchLower = this.search.toLowerCase();
           const imageCode = (card.image_code || '').toLowerCase();
           const currentChecks = (card.current_checks || '').toString();
-          const expectedChecks = (card.expected_checks || '').toString();
           
           return imageCode.includes(searchLower) || 
-                 currentChecks.includes(searchLower) ||
-                 expectedChecks.includes(searchLower);
+                 currentChecks.includes(searchLower);
         }
         
         return true;
@@ -77,11 +74,6 @@ export default {
       if (this.filters.currentChecks) {
         const currentChecks = parseInt(this.filters.currentChecks);
         filtered = filtered.filter(card => parseInt(card.current_checks) === currentChecks);
-      }
-      
-      if (this.filters.expectedChecks) {
-        const expectedChecks = parseInt(this.filters.expectedChecks);
-        filtered = filtered.filter(card => parseInt(card.expected_checks) === expectedChecks);
       }
       
       // Apply date range filter if dates are set
@@ -115,7 +107,6 @@ export default {
           image_code: card.image_code || '',
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
-          expected_checks: parseInt(card.expected_checks) || 0,
           created_at: card.created_at ? this.formatDate(card.created_at) : '',
           updated_at: card.updated_at ? this.formatDate(card.updated_at) : '',
         };
@@ -132,7 +123,6 @@ export default {
       if (this.search) count++;
       if (this.filters.isGreen !== '') count++;
       if (this.filters.currentChecks) count++;
-      if (this.filters.expectedChecks) count++;
       if (this.filters.dateRange.start || this.filters.dateRange.end) count++;
       return count;
     },
@@ -160,7 +150,8 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get('/api/admin/cards')
-        this.cards = response.data;
+        this.cards = response.data.cards;
+        this.systemInfo = response.data.system_info;
       }
       catch (error) {
         console.error('Error fetching cards:', error);
@@ -231,7 +222,6 @@ export default {
       this.filters = {
         isGreen: '',
         currentChecks: '',
-        expectedChecks: '',
         dateRange: {
           start: '',
           end: ''
@@ -255,14 +245,13 @@ export default {
         return;
       }
       
-      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date', 'Updated Date'];
+      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Created Date', 'Updated Date'];
       const csvContent = [
         headers.join(','),
         ...this.filteredCards.map(card => [
           card.image_code,
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
-          card.expected_checks,
           card.created_at || '',
           card.updated_at || ''
         ].join(','))
@@ -389,7 +378,7 @@ export default {
         <div class="card bg-success text-white">
           <div class="card-body">
             <h5 class="card-title">Green Cards</h5>
-            <h3 class="mb-0">{{ cards.filter(c => c && c.is_green).length }}</h3>
+            <h3 class="mb-0">{{ cards.filter(c => c && c.is_green).length }} (expected checks: {{ systemInfo.expected_checks_per_card || 'N/A' }})</h3>
           </div>
         </div>
       </div>
@@ -498,18 +487,6 @@ export default {
                 <input 
                   type="number" 
                   v-model="filters.currentChecks" 
-                  class="form-control" 
-                  placeholder="Exact number"
-                  min="0"
-                >
-              </div>
-              
-              <!-- Expected Checks Filter -->
-              <div class="col-md-3">
-                <label class="form-label">Expected Checks</label>
-                <input 
-                  type="number" 
-                  v-model="filters.expectedChecks" 
                   class="form-control" 
                   placeholder="Exact number"
                   min="0"
