@@ -6,6 +6,8 @@ from flask import Flask, json
 from app.admin.views import admin_bp
 from app.auth.views import auth_bp
 from datetime import datetime
+from werkzeug.datastructures import FileStorage
+import io
 
 class TestAdminRoutes(unittest.TestCase):
     def setUp(self):
@@ -162,6 +164,64 @@ class TestAdminRoutes(unittest.TestCase):
             result = send_welcome_email('user@example.com')
             
             self.assertFalse(result)
+
+    @patch('app.admin.views.load_images')
+    def test_upload_images_chunked(self, mock_load_images):
+        # Mock the load_images function
+        mock_load_images.return_value = ({"message": "Chunk uploaded successfully"}, 200)
+        
+        # Create mock files
+        mock_file = FileStorage(
+            stream=io.BytesIO(b"fake image data"),
+            filename="test_image.png",
+            content_type="image/png"
+        )
+        
+        # Test chunked upload
+        response = self.client.post(
+            "/admin/upload-images-chunked",
+            data={
+                "files": mock_file,
+                "chunk_index": "0",
+                "total_chunks": "3",
+                "is_chunked": "true"
+            },
+            content_type="multipart/form-data"
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("chunk_info", response.json)
+        self.assertEqual(response.json["chunk_info"]["chunk_index"], 0)
+        self.assertEqual(response.json["chunk_info"]["total_chunks"], 3)
+        self.assertTrue(response.json["chunk_info"]["is_chunked"])
+
+    @patch('app.admin.views.load_images')
+    def test_upload_images_chunked_error(self, mock_load_images):
+        # Mock the load_images function to raise an exception
+        mock_load_images.side_effect = Exception("Database error")
+        
+        mock_file = FileStorage(
+            stream=io.BytesIO(b"fake image data"),
+            filename="test_image.png",
+            content_type="image/png"
+        )
+        
+        # Test chunked upload with error
+        response = self.client.post(
+            "/admin/upload-images-chunked",
+            data={
+                "files": mock_file,
+                "chunk_index": "1",
+                "total_chunks": "3",
+                "is_chunked": "true"
+            },
+            content_type="multipart/form-data"
+        )
+        
+        self.assertEqual(response.status_code, 500)
+        self.assertIn("chunk_info", response.json)
+        self.assertEqual(response.json["chunk_info"]["chunk_index"], 1)
+        self.assertIn("Failed to load chunk 1", response.json["error"])
 
 if __name__ == '__main__':
     unittest.main()

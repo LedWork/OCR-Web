@@ -13,6 +13,14 @@ export default {
       mail: null,
       users: [],
       loadingUsers: false,
+      // Upload progress tracking
+      uploadProgress: 0,
+      isUploading: false,
+      uploadStatus: "",
+      currentChunk: 0,
+      totalChunks: 0,
+      uploadStartTime: null,
+      estimatedTimeRemaining: null,
     };
   },
   methods: {
@@ -68,10 +76,42 @@ export default {
     handleImageUpload(event) {
       const files = event.target.files;
       if (files.length > 0) {
-        this.imageFileNames = Array.from(files).map((file) => file.name);
-        this.uploadedImages = Array.from(files);
-      }
-      else {
+        // Validate file types and sizes
+        const validFiles = [];
+        const invalidFiles = [];
+        
+        for (const file of files) {
+          // Check file type
+          if (!file.type.startsWith('image/')) {
+            invalidFiles.push(`${file.name} (not an image)`);
+            continue;
+          }
+          
+          // Check individual file size (max 5MB per file)
+          if (file.size > 5 * 1024 * 1024) {
+            invalidFiles.push(`${file.name} (too large: ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+            continue;
+          }
+          
+          validFiles.push(file);
+        }
+        
+        if (invalidFiles.length > 0) {
+          alert(`Some files were rejected:\n${invalidFiles.join('\n')}`);
+        }
+        
+        if (validFiles.length > 0) {
+          this.imageFileNames = validFiles.map((file) => file.name);
+          this.uploadedImages = validFiles;
+          
+          // Show total size info
+          const totalSize = validFiles.reduce((sum, file) => sum + file.size, 0);
+          console.log(`Selected ${validFiles.length} images, total size: ${(totalSize / 1024 / 1024).toFixed(2)}MB`);
+        } else {
+          alert("No valid image files selected");
+          event.target.value = '';
+        }
+      } else {
         alert("Please upload valid image files");
       }
     },
@@ -81,6 +121,31 @@ export default {
         return;
       }
 
+      // Calculate total size and determine if chunking is needed
+      const totalSize = this.uploadedImages.reduce((sum, image) => sum + image.size, 0);
+      const maxChunkSize = 8 * 1024 * 1024; // 8MB per chunk (staying under 10MB limit)
+      
+      if (totalSize <= maxChunkSize) {
+        // Small upload - use original method
+        await this.uploadImagesSingleBatch();
+      } else {
+        // Large upload - show summary and confirm
+        const totalSizeMB = (totalSize / 1024 / 1024).toFixed(2);
+        const estimatedChunks = Math.ceil(totalSize / maxChunkSize);
+        
+        const confirmMessage = `Large upload detected:\n` +
+          `• Total size: ${totalSizeMB}MB\n` +
+          `• Estimated chunks: ${estimatedChunks}\n` +
+          `• This will be automatically split into smaller uploads\n\n` +
+          `Do you want to continue?`;
+        
+        if (confirm(confirmMessage)) {
+          await this.uploadImagesChunked(maxChunkSize);
+        }
+      }
+    },
+
+    async uploadImagesSingleBatch() {
       const formData = new FormData();
       this.uploadedImages.forEach((image) => {
         formData.append("files", image);
@@ -100,7 +165,147 @@ export default {
         alert("Upload successful.", response.data);
       } catch (error) {
         console.error(error);
+        alert("Upload failed: " + (error.response?.data?.error || error.message));
       }
+    },
+
+    async uploadImagesChunked(maxChunkSize) {
+      this.isUploading = true;
+      this.uploadProgress = 0;
+      this.uploadStatus = "Preparing upload...";
+      this.uploadStartTime = Date.now();
+      
+      try {
+        // Group images into chunks
+        const chunks = this.createImageChunks(maxChunkSize);
+        this.totalChunks = chunks.length;
+        this.currentChunk = 0;
+        
+        this.uploadStatus = `Uploading ${chunks.length} chunks...`;
+        
+        for (let i = 0; i < chunks.length; i++) {
+          this.currentChunk = i + 1;
+          this.uploadStatus = `Uploading chunk ${i + 1} of ${chunks.length}...`;
+          
+          const chunk = chunks[i];
+          const formData = new FormData();
+          
+          // Add chunk metadata
+          formData.append("chunk_index", i.toString());
+          formData.append("total_chunks", chunks.length.toString());
+          formData.append("is_chunked", "true");
+          
+          // Add files for this chunk
+          chunk.forEach((image) => {
+            formData.append("files", image);
+          });
+
+          // Retry logic for failed chunks
+          let retryCount = 0;
+          const maxRetries = 3;
+          let chunkUploaded = false;
+          
+          while (!chunkUploaded && retryCount < maxRetries) {
+            try {
+              if (retryCount > 0) {
+                this.uploadStatus = `Retrying chunk ${i + 1} (attempt ${retryCount + 1}/${maxRetries})...`;
+              }
+              
+              const response = await axios.post(
+                "/api/admin/upload-images-chunked",
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                    'X-CSRF-TOKEN': getCSRFToken(),
+                  },
+                  timeout: 60000, // 60 second timeout for large chunks
+                }
+              );
+              
+              // Update progress
+              this.uploadProgress = ((i + 1) / chunks.length) * 100;
+              
+              // Calculate estimated time remaining
+              this.calculateEstimatedTime(i + 1, chunks.length);
+              
+              console.log(`Chunk ${i + 1} uploaded successfully:`, response.data);
+              chunkUploaded = true;
+              
+            } catch (error) {
+              retryCount++;
+              console.error(`Error uploading chunk ${i + 1} (attempt ${retryCount}):`, error);
+              
+              if (retryCount >= maxRetries) {
+                throw new Error(`Failed to upload chunk ${i + 1} after ${maxRetries} attempts: ${error.response?.data?.error || error.message}`);
+              }
+              
+              // Wait before retry (exponential backoff)
+              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+            }
+          }
+        }
+        
+        this.uploadStatus = "Upload completed successfully!";
+        alert("All images uploaded successfully!");
+        
+      } catch (error) {
+        this.uploadStatus = "Upload failed: " + error.message;
+        alert("Upload failed: " + error.message);
+      } finally {
+        this.isUploading = false;
+        this.uploadProgress = 0;
+        this.currentChunk = 0;
+        this.totalChunks = 0;
+        this.uploadStartTime = null;
+        this.estimatedTimeRemaining = null;
+      }
+    },
+
+    calculateEstimatedTime(completedChunks, totalChunks) {
+      if (completedChunks <= 1 || !this.uploadStartTime) return;
+      
+      const elapsed = Date.now() - this.uploadStartTime;
+      const avgTimePerChunk = elapsed / completedChunks;
+      const remainingChunks = totalChunks - completedChunks;
+      const estimatedRemaining = avgTimePerChunk * remainingChunks;
+      
+      if (estimatedRemaining > 0) {
+        const minutes = Math.floor(estimatedRemaining / 60000);
+        const seconds = Math.floor((estimatedRemaining % 60000) / 1000);
+        
+        if (minutes > 0) {
+          this.estimatedTimeRemaining = `${minutes}m ${seconds}s remaining`;
+        } else {
+          this.estimatedTimeRemaining = `${seconds}s remaining`;
+        }
+      }
+    },
+
+    createImageChunks(maxChunkSize) {
+      const chunks = [];
+      let currentChunk = [];
+      let currentChunkSize = 0;
+      
+      for (const image of this.uploadedImages) {
+        if (currentChunkSize + image.size > maxChunkSize && currentChunk.length > 0) {
+          // Current chunk is full, start a new one
+          chunks.push(currentChunk);
+          currentChunk = [image];
+          currentChunkSize = image.size;
+        } else {
+          // Add to current chunk
+          currentChunk.push(image);
+          currentChunkSize += image.size;
+        }
+      }
+      
+      // Add the last chunk if it has files
+      if (currentChunk.length > 0) {
+        chunks.push(currentChunk);
+      }
+      
+      return chunks;
     },
     goToInstruction() {
       this.$router.push({name: "instruction"});
@@ -245,8 +450,41 @@ export default {
                 <li v-for="(file, index) in imageFileNames" :key="index">{{ file }}</li>
               </ul>
             </div>
+            
+            <!-- Upload Progress Section -->
+            <div v-if="isUploading" class="mt-3">
+              <div class="progress mb-2" style="height: 25px;">
+                <div 
+                  class="progress-bar progress-bar-striped progress-bar-animated" 
+                  role="progressbar" 
+                  :style="{ width: uploadProgress + '%' }"
+                  :aria-valuenow="uploadProgress" 
+                  aria-valuemin="0" 
+                  aria-valuemax="100"
+                >
+                  {{ Math.round(uploadProgress) }}%
+                </div>
+              </div>
+              <div class="text-center">
+                <small class="text-muted">{{ uploadStatus }}</small>
+                <div v-if="totalChunks > 1" class="mt-1">
+                  <small class="text-muted">Chunk {{ currentChunk }} of {{ totalChunks }}</small>
+                </div>
+                <div v-if="estimatedTimeRemaining" class="mt-1">
+                  <small class="text-info">{{ estimatedTimeRemaining }}</small>
+                </div>
+              </div>
+            </div>
+            
             <div class="d-flex mt-3 justify-content-center align-items-center">
-              <button type="submit" class="btn btn-success btn-lg w-100 w-md-25">Wyślij</button>
+              <button 
+                type="submit" 
+                class="btn btn-success btn-lg w-100 w-md-25"
+                :disabled="isUploading"
+              >
+                <span v-if="isUploading">Uploading...</span>
+                <span v-else>Wyślij</span>
+              </button>
             </div>
           </form>
         </div>
