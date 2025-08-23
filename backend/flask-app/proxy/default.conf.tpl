@@ -25,6 +25,9 @@
         keepalive_timeout 65;
         types_hash_max_size 2048;
 
+        # Increase client max body size for file uploads
+        client_max_body_size 10M;
+
         # HTTP server block: Redirects all HTTP traffic to HTTPS
         server {
             listen 80;
