@@ -33,6 +33,10 @@ app.config["SESSION_MONGODB"] = db.client
 app.config["SESSION_MONGODB_DB"] = db.name
 app.config["SESSION_MONGODB_COLLECT"] = "sessions"
 app.config.from_object(__name__)
+
+# Configure file upload limits
+app.config['MAX_CONTENT_LENGTH'] = 10 * 1024 * 1024  # 10MB limit
+
 Session(app)
 
 csrf = CSRFProtect(app)

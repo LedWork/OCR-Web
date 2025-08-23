@@ -66,6 +66,9 @@
             add_header X-XSS-Protection "1; mode=block";
 
             location / {
+                # Increase client max body size for this location
+                client_max_body_size 10M;
+                
                 # Proxy requests to the Flask application
                 proxy_pass http://app:5000;
                 proxy_set_header Host $host;
