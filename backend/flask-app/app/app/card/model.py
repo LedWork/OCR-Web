@@ -253,6 +253,7 @@ def retrieve_all_image_codes_from_cards():
             "image_code": card["image_code"],
             "is_green": is_green,
             "current_checks": current_checks,
+            "checked_by": checked_by,
             "created_at": created_at,
             "updated_at": updated_at
         })

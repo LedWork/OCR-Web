@@ -32,6 +32,7 @@ export default {
         { text: 'Image Code', value: 'image_code', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
+        { text: 'Checked By Users', value: 'checked_by_users', sortable: false },
         { text: 'Created Date', value: 'created_at', sortable: true },
         { text: 'Updated Date', value: 'updated_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, width: 150 },
@@ -57,9 +58,11 @@ export default {
           const searchLower = this.search.toLowerCase();
           const imageCode = (card.image_code || '').toLowerCase();
           const currentChecks = (card.current_checks || '').toString();
+          const checkedByUsers = this.formatUsersList(card.checked_by_users || card.users_checked || card.checked_by).toLowerCase();
           
           return imageCode.includes(searchLower) || 
-                 currentChecks.includes(searchLower);
+                 currentChecks.includes(searchLower) ||
+                 checkedByUsers.includes(searchLower);
         }
         
         return true;
@@ -107,6 +110,7 @@ export default {
           image_code: card.image_code || '',
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
+          checked_by_users: this.formatUsersList(card.checked_by_users || card.users_checked || card.checked_by),
           created_at: card.created_at ? this.formatDate(card.created_at) : '',
           updated_at: card.updated_at ? this.formatDate(card.updated_at) : '',
         };
@@ -245,13 +249,14 @@ export default {
         return;
       }
       
-      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Created Date', 'Updated Date'];
+      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Checked By Users', 'Created Date', 'Updated Date'];
       const csvContent = [
         headers.join(','),
         ...this.filteredCards.map(card => [
           card.image_code,
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
+          card.checked_by_users || 'None',
           card.created_at || '',
           card.updated_at || ''
         ].join(','))
@@ -333,6 +338,28 @@ export default {
       const seconds = String(date.getUTCSeconds()).padStart(2, '0');
       
       return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    },
+    formatUsersList(users) {
+      if (!users || !Array.isArray(users) || users.length === 0) {
+        return 'None';
+      }
+      
+      // If users is an array of objects with username field
+      if (users[0] && typeof users[0] === 'object' && users[0].username) {
+        return users.map(user => user.username).join(', ');
+      }
+      
+      // If users is an array of strings
+      if (typeof users[0] === 'string') {
+        return users.join(', ');
+      }
+      
+      // If users is a single string
+      if (typeof users === 'string') {
+        return users;
+      }
+      
+      return 'Unknown format';
     }
   },
   async mounted(){
@@ -410,7 +437,7 @@ export default {
           <input 
             type="text" 
             class="form-control" 
-            placeholder="Search by image code, status, or numbers..."
+            placeholder="Search by image code, status, numbers, or users..."
             v-model="search"
           >
           <button 
@@ -563,6 +590,15 @@ export default {
               :sort-by="sortBy"
               :sort-type="sortDesc ? 'desc' : 'asc'"
             >
+              <template #item-checked_by_users="item">
+                <div class="users-list">
+                  <span v-if="item.checked_by_users && item.checked_by_users !== 'None'" 
+                        class="badge bg-secondary me-1">
+                    {{ item.checked_by_users }}
+                  </span>
+                  <span v-else class="text-muted">None</span>
+                </div>
+              </template>
               <template #item-actions="item">
                 <div class="d-flex gap-2">
                   <button 
@@ -739,5 +775,19 @@ export default {
 
 .sort-indicator .bi {
   margin-left: 0.25rem;
+}
+
+/* Users list styling */
+.users-list {
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+.users-list .badge {
+  font-size: 0.75rem;
+  white-space: normal;
+  text-align: left;
+  display: inline-block;
+  margin-bottom: 0.25rem;
 }
 </style>
