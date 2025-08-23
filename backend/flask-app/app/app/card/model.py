@@ -199,8 +199,9 @@ def retrieve_all_image_codes_from_cards():
     
     cards_list = []
     for card in cards:
-        current_checks = card.get('correct', 0)
+        # Count actual unique users who checked the card
         checked_by = card.get('checked_by', [])
+        current_checks = len(checked_by)
         
         # Determine if card is fully validated or checked by admin
         is_validated = current_checks >= EXPECTED_CHECKS_PER_CARD
@@ -250,10 +251,9 @@ def retrieve_all_image_codes_from_cards():
         
         cards_list.append({
             "image_code": card["image_code"],
-            "check_status": f"[{current_checks}/{EXPECTED_CHECKS_PER_CARD}]",
             "is_green": is_green,
             "current_checks": current_checks,
-            "expected_checks": EXPECTED_CHECKS_PER_CARD,
+            "checked_by": checked_by,
             "created_at": created_at,
             "updated_at": updated_at
         })

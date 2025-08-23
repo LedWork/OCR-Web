@@ -105,7 +105,14 @@ def add_user():
 @admin_required
 def get_all_cards():
     cards = retrieve_all_image_codes_from_cards()
-    return jsonify(cards)
+    # Add system info to the response
+    response = {
+        "cards": cards,
+        "system_info": {
+            "expected_checks_per_card": EXPECTED_CHECKS_PER_CARD
+        }
+    }
+    return jsonify(response)
 
 
 @admin_bp.route('/card/<image_code>', methods=['DELETE'])

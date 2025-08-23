@@ -12,15 +12,14 @@ export default {
     return {
       admin: false,
       cards: [],
+      systemInfo: {},
       loading: false,
       search: '',
       selectedItems: [],
       // Advanced filters
       filters: {
-        checkStatus: '',
         isGreen: '',
         currentChecks: '',
-        expectedChecks: '',
         dateRange: {
           start: '',
           end: ''
@@ -31,10 +30,9 @@ export default {
       sortDesc: false,
       tableHeaders: [
         { text: 'Image Code', value: 'image_code', sortable: true },
-        { text: 'Check Status', value: 'check_status', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
-        { text: 'Expected Checks', value: 'expected_checks', sortable: true },
+        { text: 'Checked By Users', value: 'checked_by_users', sortable: false },
         { text: 'Created Date', value: 'created_at', sortable: true },
         { text: 'Updated Date', value: 'updated_at', sortable: true },
         { text: 'Actions', value: 'actions', sortable: false, width: 150 },
@@ -42,7 +40,6 @@ export default {
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
       // Filter options
-      checkStatusOptions: ['pending', 'in_progress', 'completed', 'verified', 'rejected'],
       booleanOptions: [
         { text: 'All', value: '' },
         { text: 'Yes', value: 'true' },
@@ -60,24 +57,18 @@ export default {
         if (this.search) {
           const searchLower = this.search.toLowerCase();
           const imageCode = (card.image_code || '').toLowerCase();
-          const checkStatus = (card.check_status || '').toLowerCase();
           const currentChecks = (card.current_checks || '').toString();
-          const expectedChecks = (card.expected_checks || '').toString();
+          const checkedByUsers = this.formatUsersList(card.checked_by_users || card.users_checked || card.checked_by).toLowerCase();
           
           return imageCode.includes(searchLower) || 
-                 checkStatus.includes(searchLower) ||
                  currentChecks.includes(searchLower) ||
-                 expectedChecks.includes(searchLower);
+                 checkedByUsers.includes(searchLower);
         }
         
         return true;
       });
       
       // Apply advanced filters
-      if (this.filters.checkStatus) {
-        filtered = filtered.filter(card => card.check_status === this.filters.checkStatus);
-      }
-      
       if (this.filters.isGreen !== '') {
         const isGreen = this.filters.isGreen === 'true';
         filtered = filtered.filter(card => card.is_green === isGreen);
@@ -86,11 +77,6 @@ export default {
       if (this.filters.currentChecks) {
         const currentChecks = parseInt(this.filters.currentChecks);
         filtered = filtered.filter(card => parseInt(card.current_checks) === currentChecks);
-      }
-      
-      if (this.filters.expectedChecks) {
-        const expectedChecks = parseInt(this.filters.expectedChecks);
-        filtered = filtered.filter(card => parseInt(card.expected_checks) === expectedChecks);
       }
       
       // Apply date range filter if dates are set
@@ -122,10 +108,9 @@ export default {
           ...card,
           // Ensure all required fields are present with safe defaults
           image_code: card.image_code || '',
-          check_status: card.check_status || '',
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
-          expected_checks: parseInt(card.expected_checks) || 0,
+          checked_by_users: this.formatUsersList(card.checked_by_users || card.users_checked || card.checked_by),
           created_at: card.created_at ? this.formatDate(card.created_at) : '',
           updated_at: card.updated_at ? this.formatDate(card.updated_at) : '',
         };
@@ -136,19 +121,12 @@ export default {
     selectedCount() {
       return this.selectedItems.length;
     },
-    // Get unique values for filter options
-    uniqueCheckStatuses() {
-      const statuses = [...new Set(this.cards.map(card => card.check_status).filter(Boolean))];
-      return statuses.sort();
-    },
     // Filter summary
     activeFiltersCount() {
       let count = 0;
       if (this.search) count++;
-      if (this.filters.checkStatus) count++;
       if (this.filters.isGreen !== '') count++;
       if (this.filters.currentChecks) count++;
-      if (this.filters.expectedChecks) count++;
       if (this.filters.dateRange.start || this.filters.dateRange.end) count++;
       return count;
     },
@@ -176,7 +154,8 @@ export default {
       this.loading = true;
       try {
         const response = await axios.get('/api/admin/cards')
-        this.cards = response.data;
+        this.cards = response.data.cards;
+        this.systemInfo = response.data.system_info;
       }
       catch (error) {
         console.error('Error fetching cards:', error);
@@ -245,10 +224,8 @@ export default {
     clearAllFilters() {
       this.search = '';
       this.filters = {
-        checkStatus: '',
         isGreen: '',
         currentChecks: '',
-        expectedChecks: '',
         dateRange: {
           start: '',
           end: ''
@@ -272,15 +249,14 @@ export default {
         return;
       }
       
-      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date', 'Updated Date'];
+      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Checked By Users', 'Created Date', 'Updated Date'];
       const csvContent = [
         headers.join(','),
         ...this.filteredCards.map(card => [
           card.image_code,
-          card.check_status,
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
-          card.expected_checks,
+          card.checked_by_users || 'None',
           card.created_at || '',
           card.updated_at || ''
         ].join(','))
@@ -362,6 +338,28 @@ export default {
       const seconds = String(date.getUTCSeconds()).padStart(2, '0');
       
       return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+    },
+    formatUsersList(users) {
+      if (!users || !Array.isArray(users) || users.length === 0) {
+        return 'None';
+      }
+      
+      // If users is an array of objects with username field
+      if (users[0] && typeof users[0] === 'object' && users[0].username) {
+        return users.map(user => user.username).join(', ');
+      }
+      
+      // If users is an array of strings
+      if (typeof users[0] === 'string') {
+        return users.join(', ');
+      }
+      
+      // If users is a single string
+      if (typeof users === 'string') {
+        return users;
+      }
+      
+      return 'Unknown format';
     }
   },
   async mounted(){
@@ -407,7 +405,7 @@ export default {
         <div class="card bg-success text-white">
           <div class="card-body">
             <h5 class="card-title">Green Cards</h5>
-            <h3 class="mb-0">{{ cards.filter(c => c && c.is_green).length }}</h3>
+            <h3 class="mb-0">{{ cards.filter(c => c && c.is_green).length }} (expected checks: {{ systemInfo.expected_checks_per_card || 'N/A' }})</h3>
           </div>
         </div>
       </div>
@@ -439,7 +437,7 @@ export default {
           <input 
             type="text" 
             class="form-control" 
-            placeholder="Search by image code, status, or numbers..."
+            placeholder="Search by image code, status, numbers, or users..."
             v-model="search"
           >
           <button 
@@ -500,17 +498,6 @@ export default {
           </div>
           <div class="card-body">
             <div class="row g-3">
-              <!-- Check Status Filter -->
-              <div class="col-md-3">
-                <label class="form-label">Check Status</label>
-                <select v-model="filters.checkStatus" class="form-select">
-                  <option value="">All Statuses</option>
-                  <option v-for="status in uniqueCheckStatuses" :key="status" :value="status">
-                    {{ status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ') }}
-                  </option>
-                </select>
-              </div>
-              
               <!-- Is Green Filter -->
               <div class="col-md-3">
                 <label class="form-label">Is Green</label>
@@ -527,18 +514,6 @@ export default {
                 <input 
                   type="number" 
                   v-model="filters.currentChecks" 
-                  class="form-control" 
-                  placeholder="Exact number"
-                  min="0"
-                >
-              </div>
-              
-              <!-- Expected Checks Filter -->
-              <div class="col-md-3">
-                <label class="form-label">Expected Checks</label>
-                <input 
-                  type="number" 
-                  v-model="filters.expectedChecks" 
                   class="form-control" 
                   placeholder="Exact number"
                   min="0"
@@ -615,6 +590,15 @@ export default {
               :sort-by="sortBy"
               :sort-type="sortDesc ? 'desc' : 'asc'"
             >
+              <template #item-checked_by_users="item">
+                <div class="users-list">
+                  <span v-if="item.checked_by_users && item.checked_by_users !== 'None'" 
+                        class="badge bg-secondary me-1">
+                    {{ item.checked_by_users }}
+                  </span>
+                  <span v-else class="text-muted">None</span>
+                </div>
+              </template>
               <template #item-actions="item">
                 <div class="d-flex gap-2">
                   <button 
@@ -791,5 +775,19 @@ export default {
 
 .sort-indicator .bi {
   margin-left: 0.25rem;
+}
+
+/* Users list styling */
+.users-list {
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+.users-list .badge {
+  font-size: 0.75rem;
+  white-space: normal;
+  text-align: left;
+  display: inline-block;
+  margin-bottom: 0.25rem;
 }
 </style>
