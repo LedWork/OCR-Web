@@ -43,6 +43,43 @@ def upload_image():
         return jsonify({"error": f"Failed to load data: {str(e)}"}), 500
 
 
+@admin_bp.route('/upload-images-chunked', methods=['POST'])
+@admin_required
+def upload_images_chunked():
+    """Handle chunked image uploads to avoid server limits"""
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({"error": "No files provided"}), 400
+
+    # Get chunk metadata
+    chunk_index = request.form.get('chunk_index', '0')
+    total_chunks = request.form.get('total_chunks', '1')
+    is_chunked = request.form.get('is_chunked', 'false')
+    
+    try:
+        # Process this chunk of images
+        response, status_code = load_images(files)
+        
+        # Add chunk information to response
+        if isinstance(response, dict):
+            response['chunk_info'] = {
+                'chunk_index': int(chunk_index),
+                'total_chunks': int(total_chunks),
+                'is_chunked': is_chunked == 'true'
+            }
+        
+        return jsonify(response), status_code
+    except Exception as e:
+        return jsonify({
+            "error": f"Failed to load chunk {chunk_index}: {str(e)}",
+            "chunk_info": {
+                'chunk_index': int(chunk_index),
+                'total_chunks': int(total_chunks),
+                'is_chunked': is_chunked == 'true'
+            }
+        }), 500
+
+
 @admin_bp.route('/add-user', methods=['POST'])
 @admin_required
 def add_user():
