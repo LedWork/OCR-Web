@@ -17,7 +17,6 @@ export default {
       selectedItems: [],
       // Advanced filters
       filters: {
-        checkStatus: '',
         isGreen: '',
         currentChecks: '',
         expectedChecks: '',
@@ -31,7 +30,6 @@ export default {
       sortDesc: false,
       tableHeaders: [
         { text: 'Image Code', value: 'image_code', sortable: true },
-        { text: 'Check Status', value: 'check_status', sortable: true },
         { text: 'Is Green', value: 'is_green', sortable: true },
         { text: 'Current Checks', value: 'current_checks', sortable: true },
         { text: 'Expected Checks', value: 'expected_checks', sortable: true },
@@ -42,7 +40,6 @@ export default {
       itemsPerPage: 10,
       itemsPerPageOptions: [5, 10, 25, 50, 100],
       // Filter options
-      checkStatusOptions: ['pending', 'in_progress', 'completed', 'verified', 'rejected'],
       booleanOptions: [
         { text: 'All', value: '' },
         { text: 'Yes', value: 'true' },
@@ -60,12 +57,10 @@ export default {
         if (this.search) {
           const searchLower = this.search.toLowerCase();
           const imageCode = (card.image_code || '').toLowerCase();
-          const checkStatus = (card.check_status || '').toLowerCase();
           const currentChecks = (card.current_checks || '').toString();
           const expectedChecks = (card.expected_checks || '').toString();
           
           return imageCode.includes(searchLower) || 
-                 checkStatus.includes(searchLower) ||
                  currentChecks.includes(searchLower) ||
                  expectedChecks.includes(searchLower);
         }
@@ -74,10 +69,6 @@ export default {
       });
       
       // Apply advanced filters
-      if (this.filters.checkStatus) {
-        filtered = filtered.filter(card => card.check_status === this.filters.checkStatus);
-      }
-      
       if (this.filters.isGreen !== '') {
         const isGreen = this.filters.isGreen === 'true';
         filtered = filtered.filter(card => card.is_green === isGreen);
@@ -122,7 +113,6 @@ export default {
           ...card,
           // Ensure all required fields are present with safe defaults
           image_code: card.image_code || '',
-          check_status: card.check_status || '',
           is_green: card.is_green ? 'Yes' : 'No',
           current_checks: parseInt(card.current_checks) || 0,
           expected_checks: parseInt(card.expected_checks) || 0,
@@ -136,16 +126,10 @@ export default {
     selectedCount() {
       return this.selectedItems.length;
     },
-    // Get unique values for filter options
-    uniqueCheckStatuses() {
-      const statuses = [...new Set(this.cards.map(card => card.check_status).filter(Boolean))];
-      return statuses.sort();
-    },
     // Filter summary
     activeFiltersCount() {
       let count = 0;
       if (this.search) count++;
-      if (this.filters.checkStatus) count++;
       if (this.filters.isGreen !== '') count++;
       if (this.filters.currentChecks) count++;
       if (this.filters.expectedChecks) count++;
@@ -245,7 +229,6 @@ export default {
     clearAllFilters() {
       this.search = '';
       this.filters = {
-        checkStatus: '',
         isGreen: '',
         currentChecks: '',
         expectedChecks: '',
@@ -272,12 +255,11 @@ export default {
         return;
       }
       
-      const headers = ['Image Code', 'Check Status', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date', 'Updated Date'];
+      const headers = ['Image Code', 'Is Green', 'Current Checks', 'Expected Checks', 'Created Date', 'Updated Date'];
       const csvContent = [
         headers.join(','),
         ...this.filteredCards.map(card => [
           card.image_code,
-          card.check_status,
           card.is_green ? 'Yes' : 'No',
           card.current_checks,
           card.expected_checks,
@@ -500,17 +482,6 @@ export default {
           </div>
           <div class="card-body">
             <div class="row g-3">
-              <!-- Check Status Filter -->
-              <div class="col-md-3">
-                <label class="form-label">Check Status</label>
-                <select v-model="filters.checkStatus" class="form-select">
-                  <option value="">All Statuses</option>
-                  <option v-for="status in uniqueCheckStatuses" :key="status" :value="status">
-                    {{ status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ') }}
-                  </option>
-                </select>
-              </div>
-              
               <!-- Is Green Filter -->
               <div class="col-md-3">
                 <label class="form-label">Is Green</label>
