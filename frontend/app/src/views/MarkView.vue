@@ -24,11 +24,14 @@ export default {
       imageCode: '',
       showImageModal: false,
       splitPercent: 50, // Default split percentage
+      rateLimitInfo: null, // New data property for rate limit info
     }
   },
   methods: {
     async getCard() {
       try {
+        this.rateLimitInfo = null;
+        
         const response = await axios.get('/api/card/random')
         console.log(response)
         const { imageCode, jsonData, cardData } = await loadJsonData(response.data);
@@ -36,8 +39,23 @@ export default {
         this.imageCode = imageCode;
         this.jsonData = jsonData;
         this.cardData = cardData;
+        
+        // Clear rate limit info when we successfully get a card
+        this.rateLimitInfo = null;
+        
       } catch (error) {
         console.log(error)
+        
+        // Handle rate limiting from Nginx
+        if (error.response && error.response.status === 429) {
+          this.rateLimitInfo = error.response.data;
+          console.log('Rate limit exceeded:', this.rateLimitInfo);
+          
+          // Start automatic retry countdown
+          this.startAutoRetry();
+          return;
+        }
+        
         // Check if the error is due to no more cards available
         if (error.response && error.response.status === 400 && 
             error.response.data && error.response.data.error === "No cards available in the database.") {
@@ -45,6 +63,18 @@ export default {
           this.$router.push({name: 'thanks'})
         }
       }
+    },
+    
+    startAutoRetry() {
+      // Retry every 5 seconds until we get a card
+      const retryInterval = setInterval(() => {
+        this.getCard().then(() => {
+          // If we successfully got a card, clear the interval
+          if (this.cardData) {
+            clearInterval(retryInterval);
+          }
+        });
+      }, 5000);
     },
     updateJsonData(updatedValue) {
       this.jsonData = updatedValue;
@@ -96,7 +126,7 @@ export default {
       if (saved) {
         this.splitPercent = parseInt(saved);
       }
-    }
+         }
   },
   async mounted() {
     try {
@@ -117,7 +147,7 @@ export default {
 }
 </script>
 <template>
-  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="!loading && cardData">
+  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="!loading && cardData && !rateLimitInfo">
     <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
       <div class="row w-100 d-flex justify-content-center mb-2">
         <button
@@ -172,7 +202,7 @@ export default {
   </div>
   
   <!-- Loading indicator -->
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !rateLimitInfo">
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -181,13 +211,24 @@ export default {
     </div>
   </div>
   
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData && !rateLimitInfo">
     <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
     <button
       @click="goToThanks"
       class="btn btn-lg btn-danger w-auto">
       ZAKOŃCZ SPRAWDZANIE
     </button>
+  </div>
+
+  <!-- Rate limit loading -->
+  <div v-if="rateLimitInfo && rateLimitInfo.rate_limit" class="container d-flex flex-column justify-content-center align-items-center mt-5">
+    <div class="text-center">
+      <div class="spinner-border text-warning" role="status">
+        <span class="visually-hidden">Oczekiwanie...</span>
+      </div>
+      <h3 class="mt-3">Oczekiwanie na kolejną kartę...</h3>
+      <p class="text-muted">Automatyczne ponowienie próby co 5 sekund</p>
+    </div>
   </div>
 </template>
 
