@@ -52,6 +52,9 @@ def receive_correct_card():
 def send_random_card():
     user_id = session.get('user')
     card = get_random_card(user_id)
+    card.pop("checked_by")
+    card.pop("correct")
+
     card = parse_json(card)
     if not card:
         return jsonify({"error": "No cards available in the database."}), 400
