@@ -46,12 +46,12 @@ export default {
       } catch (error) {
         console.log(error)
         
-        // Handle rate limiting from Nginx
-        if (error.response && error.response.status === 429) {
-          this.rateLimitInfo = error.response.data;
-          console.log('Rate limit exceeded:', this.rateLimitInfo);
+        // Handle rate limiting from Nginx (429) or service unavailable (503)
+        if (error.response && (error.response.status === 429 || error.response.status === 503)) {
+          this.rateLimitInfo = { rate_limit: true };
+          console.log('Rate limit exceeded or service unavailable:', error.response.status);
           
-          // Start automatic retry countdown
+          // Start automatic retry
           this.startAutoRetry();
           return;
         }
@@ -62,16 +62,28 @@ export default {
           // No more cards available, redirect to thanks view
           this.$router.push({name: 'thanks'})
         }
+        
+        // For other errors, don't clear existing card data - keep showing current card
+        // This prevents the same card from being shown again
       }
     },
     
     startAutoRetry() {
       // Retry every 5 seconds until we get a card
       const retryInterval = setInterval(() => {
+        if (this.rateLimitInfo) {
+          this.rateLimitInfo.status = 'Ponowienie próby...';
+        }
+        
         this.getCard().then(() => {
           // If we successfully got a card, clear the interval
           if (this.cardData) {
             clearInterval(retryInterval);
+          }
+        }).catch(() => {
+          // Update status for next retry
+          if (this.rateLimitInfo) {
+            this.rateLimitInfo.status = 'Następna próba za 5 sekund...';
           }
         });
       }, 5000);
@@ -228,6 +240,7 @@ export default {
       </div>
       <h3 class="mt-3">Oczekiwanie na kolejną kartę...</h3>
       <p class="text-muted">Automatyczne ponowienie próby co 5 sekund</p>
+      <p class="text-muted mt-2">Status: {{ rateLimitInfo.status || 'Sprawdzanie dostępności...' }}</p>
     </div>
   </div>
 </template>
