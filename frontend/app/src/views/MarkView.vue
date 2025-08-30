@@ -63,10 +63,7 @@ export default {
         this.isRequestingCard = true;
         
         const response = await axios.get('/api/card/random')
-        console.log('API response:', response)
         const { imageCode, jsonData, cardData } = await loadJsonData(response.data);
-        console.log('Parsed data:', { imageCode, jsonData, cardData });
-        console.log('Raw response data:', response.data);
 
         this.imageCode = imageCode;
         this.jsonData = jsonData;
@@ -92,8 +89,11 @@ export default {
           this.imageCode = '';
           this.jsonData = {};
           
-          // Ensure countdown is running so users can see remaining time
-          this.ensureCountdownRunning();
+          // If we have a last request time but no countdown running, start it
+          // This ensures users can see the remaining time
+          if (this.lastCardRequestTime && !this.countdownInterval) {
+            this.startCountdown();
+          }
         }
       } finally {
         this.isRequestingCard = false;
@@ -106,19 +106,23 @@ export default {
         clearInterval(this.countdownInterval);
       }
       
-      // Start countdown from 21 seconds
-      this.countdown = 21;
-      console.log('Starting countdown from:', this.countdown);
+      // Calculate how much time has passed since the last request
+      if (this.lastCardRequestTime) {
+        const elapsed = Date.now() - this.lastCardRequestTime;
+        const remaining = Math.max(0, 21 - Math.floor(elapsed / 1000));
+        this.countdown = remaining;
+      } else {
+        // If no last request time, start from 21
+        this.countdown = 21;
+      }
       
       this.countdownInterval = setInterval(() => {
         this.countdown--;
-        console.log('Countdown:', this.countdown);
         
         if (this.countdown <= 0) {
           clearInterval(this.countdownInterval);
           this.countdownInterval = null;
           this.countdown = 0;
-          console.log('Countdown finished');
         }
       }, 1000);
     },
@@ -186,40 +190,15 @@ export default {
       // Reset the countdown and get a new card
       this.stopCountdown();
       this.lastCardRequestTime = null;
-      
-      console.log('Getting new card...');
       await this.getCard();
-      
-      console.log('Card data after getCard:', this.cardData);
-      console.log('Image code after getCard:', this.imageCode);
       
       // If we successfully got a card, also load the image
       if (this.cardData && this.imageCode) {
         try {
-          console.log('Loading image for code:', this.imageCode);
           this.image = await loadImage(this.imageCode);
-          console.log('Image loaded successfully:', this.image);
-          
-          // If image loading failed, try to debug the issue
-          if (!this.image) {
-            console.log('Image loading returned null/undefined, checking API response...');
-            // Make a direct call to see what the image API returns
-            const imageResponse = await axios.get(`/api/image/${this.imageCode}`);
-            console.log('Direct image API response:', imageResponse.data);
-          }
         } catch (error) {
           console.error('Error loading image:', error);
         }
-      } else {
-        console.log('Cannot load image - missing cardData or imageCode');
-      }
-    },
-    
-    ensureCountdownRunning() {
-      // If we have a last request time but no countdown running, start it
-      if (this.lastCardRequestTime && !this.countdownInterval && this.countdown === 0) {
-        console.log('Ensuring countdown is running...');
-        this.startCountdown();
       }
     }
   },
