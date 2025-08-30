@@ -24,13 +24,43 @@ export default {
       imageCode: '',
       showImageModal: false,
       splitPercent: 50, // Default split percentage
-      rateLimitInfo: null, // New data property for rate limit info
+      isRequestingCard: false, // Prevent multiple simultaneous card requests
+      lastCardRequestTime: null, // Track when we last requested a card
+      countdown: 0, // Countdown for the throttle
+      countdownInterval: null, // Interval ID for the countdown
+    }
+  },
+  computed: {
+    canRequestCard() {
+      // Allow request if no last request time or if the countdown has finished
+      return !this.lastCardRequestTime || this.countdown === 0;
+    },
+    
+    remainingThrottleTime() {
+      // Directly use the reactive countdown for display
+      return this.countdown;
+    },
+    
+    shouldShowMainContent() {
+      return !this.loading && this.cardData;
     }
   },
   methods: {
     async getCard() {
+      // Check if we can request a card (throttling)
+      if (!this.canRequestCard) {
+        console.log('Throttling active, cannot request card yet');
+        return;
+      }
+      
+      // Prevent multiple simultaneous requests
+      if (this.isRequestingCard) {
+        console.log('Card request already in progress, skipping...');
+        return;
+      }
+      
       try {
-        this.rateLimitInfo = null;
+        this.isRequestingCard = true;
         
         const response = await axios.get('/api/card/random')
         console.log(response)
@@ -40,53 +70,57 @@ export default {
         this.jsonData = jsonData;
         this.cardData = cardData;
         
-        // Clear rate limit info when we successfully get a card
-        this.rateLimitInfo = null;
+        // Update last request time and start countdown
+        this.lastCardRequestTime = Date.now();
+        this.startCountdown();
         
       } catch (error) {
         console.log(error)
-        
-        // Handle rate limiting from Nginx (429) or service unavailable (503)
-        if (error.response && (error.response.status === 429 || error.response.status === 503)) {
-          this.rateLimitInfo = { rate_limit: true };
-          console.log('Rate limit exceeded or service unavailable:', error.response.status);
-          
-          // Start automatic retry
-          this.startAutoRetry();
-          return;
-        }
         
         // Check if the error is due to no more cards available
         if (error.response && error.response.status === 400 && 
             error.response.data && error.response.data.error === "No cards available in the database.") {
           // No more cards available, redirect to thanks view
           this.$router.push({name: 'thanks'})
+        } else {
+          // For other errors (including rate limiting), clear the card data
+          // This will show the "Zbyt szybkie żądania" message
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
         }
-        
-        // For other errors, don't clear existing card data - keep showing current card
-        // This prevents the same card from being shown again
+      } finally {
+        this.isRequestingCard = false;
       }
     },
     
-    startAutoRetry() {
-      // Retry every 5 seconds until we get a card
-      const retryInterval = setInterval(() => {
-        if (this.rateLimitInfo) {
-          this.rateLimitInfo.status = 'Ponowienie próby...';
-        }
+    startCountdown() {
+      // Clear any existing countdown
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+      }
+      
+      // Start countdown from 21 seconds
+      this.countdown = 21;
+      
+      this.countdownInterval = setInterval(() => {
+        this.countdown--;
         
-        this.getCard().then(() => {
-          // If we successfully got a card, clear the interval
-          if (this.cardData) {
-            clearInterval(retryInterval);
-          }
-        }).catch(() => {
-          // Update status for next retry
-          if (this.rateLimitInfo) {
-            this.rateLimitInfo.status = 'Następna próba za 5 sekund...';
-          }
-        });
-      }, 5000);
+        if (this.countdown <= 0) {
+          clearInterval(this.countdownInterval);
+          this.countdownInterval = null;
+          this.countdown = 0;
+        }
+      }, 1000);
+    },
+    
+    stopCountdown() {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+        this.countdown = 0;
+      }
     },
     updateJsonData(updatedValue) {
       this.jsonData = updatedValue;
@@ -138,7 +172,14 @@ export default {
       if (saved) {
         this.splitPercent = parseInt(saved);
       }
-         }
+    },
+    
+    async getNewCard() {
+      // Reset the countdown and get a new card
+      this.stopCountdown();
+      this.lastCardRequestTime = null;
+      await this.getCard();
+    }
   },
   async mounted() {
     try {
@@ -156,10 +197,15 @@ export default {
       this.loading = false
     }
   },
+  
+  beforeUnmount() {
+    // Clean up countdown interval when component is destroyed
+    this.stopCountdown();
+  },
 }
 </script>
 <template>
-  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="!loading && cardData && !rateLimitInfo">
+  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
     <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
       <div class="row w-100 d-flex justify-content-center mb-2">
         <button
@@ -193,8 +239,12 @@ export default {
             <form @submit.prevent="handleSubmit" class="w-100">
               <DynamicForm :value="jsonData" @update:value="updateJsonData" />
               <div class="text-center mt-3">
-                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading">
+                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard">
                   <span v-if="loading">ŁADOWANIE...</span>
+                  <span v-else-if="!canRequestCard">
+                    WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
+                    <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
+                  </span>
                   <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
                 </button>
               </div>
@@ -214,7 +264,7 @@ export default {
   </div>
   
   <!-- Loading indicator -->
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !rateLimitInfo">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !shouldShowRateLimitLoading">
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -223,26 +273,34 @@ export default {
     </div>
   </div>
   
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData && !rateLimitInfo">
-    <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
-    <button
-      @click="goToThanks"
-      class="btn btn-lg btn-danger w-auto">
-      ZAKOŃCZ SPRAWDZANIE
-    </button>
-  </div>
-
-  <!-- Rate limit loading -->
-  <div v-if="rateLimitInfo && rateLimitInfo.rate_limit" class="container d-flex flex-column justify-content-center align-items-center mt-5">
+  <!-- No cards available or rate limit reached -->
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
     <div class="text-center">
-      <div class="spinner-border text-warning" role="status">
-        <span class="visually-hidden">Oczekiwanie...</span>
+      <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
+      <p class="lead mb-4">Spróbuj ponownie za {{ countdown }} sekund</p>
+      
+      <div class="d-flex gap-3 justify-content-center">
+        <button
+          @click="getNewCard"
+          :disabled="!canRequestCard"
+          class="btn btn-lg btn-primary">
+          <span v-if="!canRequestCard">
+            Pobierz nową kartę
+            <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
+          </span>
+          <span v-else>Pobierz nową kartę</span>
+        </button>
+        
+        <button
+          @click="goToThanks"
+          class="btn btn-lg btn-danger">
+          ZAKOŃCZ SPRAWDZANIE
+        </button>
       </div>
-      <h3 class="mt-3">Oczekiwanie na kolejną kartę...</h3>
-      <p class="text-muted">Automatyczne ponowienie próby co 5 sekund</p>
-      <p class="text-muted mt-2">Status: {{ rateLimitInfo.status || 'Sprawdzanie dostępności...' }}</p>
     </div>
   </div>
+
+
 </template>
 
 <style scoped>
