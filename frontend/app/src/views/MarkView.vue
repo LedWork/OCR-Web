@@ -24,26 +24,139 @@ export default {
       imageCode: '',
       showImageModal: false,
       splitPercent: 50, // Default split percentage
+      isRequestingCard: false, // Prevent multiple simultaneous card requests
+      lastCardRequestTime: null, // Track when we last requested a card
+      countdown: 0, // Countdown for the throttle
+      countdownInterval: null, // Interval ID for the countdown
+      isRateLimited: false, // Track if we're rate limited vs no cards available
+    }
+  },
+  computed: {
+    canRequestCard() {
+      // Allow request if no last request time or if the countdown has finished
+      return !this.lastCardRequestTime || this.countdown === 0;
+    },
+    
+    remainingThrottleTime() {
+      // Directly use the reactive countdown for display
+      return this.countdown;
+    },
+    
+    shouldShowMainContent() {
+      return !this.loading && this.cardData;
+    },
+    
+    shouldShowRateLimitLoading() {
+      return this.isRateLimited && this.countdown > 0;
     }
   },
   methods: {
     async getCard() {
+      // Check if we can request a card (throttling)
+      if (!this.canRequestCard) {
+        console.log('Throttling active, cannot request card yet');
+        return;
+      }
+      
+      // Prevent multiple simultaneous requests
+      if (this.isRequestingCard) {
+        console.log('Card request already in progress, skipping...');
+        return;
+      }
+      
       try {
+        this.isRequestingCard = true;
+        
         const response = await axios.get('/api/card/random')
-        console.log(response)
         const { imageCode, jsonData, cardData } = await loadJsonData(response.data);
 
         this.imageCode = imageCode;
         this.jsonData = jsonData;
         this.cardData = cardData;
+        
+        // Reset rate limit flag since we successfully got a card
+        this.isRateLimited = false;
+        
+        // Update last request time and start countdown
+        this.lastCardRequestTime = Date.now();
+        this.startCountdown();
+        
       } catch (error) {
         console.log(error)
+        
         // Check if the error is due to no more cards available
         if (error.response && error.response.status === 400 && 
             error.response.data && error.response.data.error === "No cards available in the database.") {
-          // No more cards available, redirect to thanks view
-          this.$router.push({name: 'thanks'})
+          // No more cards available, set flag and clear data
+          this.isRateLimited = false;
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
+        } else if (error.response && error.response.status === 429) {
+          // Rate limit exceeded, set flag and clear data
+          this.isRateLimited = true;
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
+          
+          // If we have a last request time but no countdown running, start it
+          // This ensures users can see the remaining time
+          if (this.lastCardRequestTime && !this.countdownInterval) {
+            this.startCountdown();
+          }
+        } else {
+          // For other errors, assume rate limiting and clear the card data
+          this.isRateLimited = true;
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
+          
+          // If we have a last request time but no countdown running, start it
+          // This ensures users can see the remaining time
+          if (this.lastCardRequestTime && !this.countdownInterval) {
+            this.startCountdown();
+          }
         }
+      } finally {
+        this.isRequestingCard = false;
+      }
+    },
+    
+    startCountdown() {
+      // Clear any existing countdown
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+      }
+      
+      // Calculate how much time has passed since the last request
+      if (this.lastCardRequestTime) {
+        const elapsed = Date.now() - this.lastCardRequestTime;
+        const remaining = Math.max(0, 21 - Math.floor(elapsed / 1000));
+        this.countdown = remaining;
+      } else {
+        // If no last request time, start from 21
+        this.countdown = 21;
+      }
+      
+      this.countdownInterval = setInterval(() => {
+        this.countdown--;
+        
+        if (this.countdown <= 0) {
+          clearInterval(this.countdownInterval);
+          this.countdownInterval = null;
+          this.countdown = 0;
+        }
+      }, 1000);
+    },
+    
+    stopCountdown() {
+      if (this.countdownInterval) {
+        clearInterval(this.countdownInterval);
+        this.countdownInterval = null;
+        this.countdown = 0;
       }
     },
     updateJsonData(updatedValue) {
@@ -96,6 +209,23 @@ export default {
       if (saved) {
         this.splitPercent = parseInt(saved);
       }
+    },
+    
+    async getNewCard() {
+      // Reset the countdown and get a new card
+      this.stopCountdown();
+      this.lastCardRequestTime = null;
+      this.isRateLimited = false; // Reset rate limit flag
+      await this.getCard();
+      
+      // If we successfully got a card, also load the image
+      if (this.cardData && this.imageCode) {
+        try {
+          this.image = await loadImage(this.imageCode);
+        } catch (error) {
+          console.error('Error loading image:', error);
+        }
+      }
     }
   },
   async mounted() {
@@ -114,10 +244,17 @@ export default {
       this.loading = false
     }
   },
+  
+  beforeUnmount() {
+    // Clean up countdown interval when component is destroyed
+    this.stopCountdown();
+  },
+  
+
 }
 </script>
 <template>
-  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="!loading && cardData">
+  <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
     <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
       <div class="row w-100 d-flex justify-content-center mb-2">
         <button
@@ -151,8 +288,12 @@ export default {
             <form @submit.prevent="handleSubmit" class="w-100">
               <DynamicForm :value="jsonData" @update:value="updateJsonData" />
               <div class="text-center mt-3">
-                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading">
+                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard">
                   <span v-if="loading">ŁADOWANIE...</span>
+                  <span v-else-if="!canRequestCard">
+                    WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
+                    <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
+                  </span>
                   <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
                 </button>
               </div>
@@ -172,7 +313,7 @@ export default {
   </div>
   
   <!-- Loading indicator -->
-  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading">
+  <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !shouldShowRateLimitLoading">
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -181,14 +322,46 @@ export default {
     </div>
   </div>
   
+  <!-- No cards available or rate limit reached -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
-    <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
-    <button
-      @click="goToThanks"
-      class="btn btn-lg btn-danger w-auto">
-      ZAKOŃCZ SPRAWDZANIE
-    </button>
+    <!-- Rate limit message -->
+    <div class="text-center" v-if="isRateLimited">
+      <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
+      <p class="lead mb-4">Spróbuj ponownie za kilka sekund</p>
+      
+      <div class="d-flex gap-3 justify-content-center">
+        <button
+          @click="getNewCard"
+          :disabled="!canRequestCard"
+          class="btn btn-lg btn-primary">
+          <span v-if="!canRequestCard">
+            Pobierz nową kartę
+          </span>
+          <span v-else>Pobierz nową kartę</span>
+        </button>
+        
+        <button
+          @click="goToThanks"
+          class="btn btn-lg btn-danger">
+          ZAKOŃCZ SPRAWDZANIE
+        </button>
+      </div>
+    </div>
+    
+    <!-- No more cards message -->
+    <div class="text-center" v-else>
+      <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
+      <div class="d-flex gap-3 justify-content-center">
+        <button
+          @click="goToThanks"
+          class="btn btn-lg btn-danger w-auto">
+          ZAKOŃCZ SPRAWDZANIE
+        </button>
+      </div>
+    </div>
   </div>
+
+
 </template>
 
 <style scoped>
