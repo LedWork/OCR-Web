@@ -11,6 +11,14 @@ export default {
       default: false,
     }
   },
+  mounted() {
+    // Initialize Bootstrap tooltips
+    this.initializeTooltips();
+  },
+  updated() {
+    // Re-initialize tooltips after updates
+    this.initializeTooltips();
+  },
   methods: {
     updateValue(key, newValue) {
       this.$emit('update:value', { ...this.value, [key]: newValue })
@@ -23,6 +31,31 @@ export default {
       if (key === 'II st.') return 'section-ii'
       if (key === 'I st.') return 'section-i'
       return ''
+    },
+    getTooltipText(key) {
+      const tooltips = {
+        'PESEL': 'PESEL może znajdować się w różnych miejscach na karcie. Sprawdź czy PESEL ma dokładnie 11 cyfr',
+        'Data': 'Sprawdź poprawność daty w formacie DD.MM.RRRR lub DD.MM.RR',
+        'Na wniosek ZR': 'Wpisz miejscowość dokładnie tak, jak jest na karcie, np. Gdansk, Starog-Gd., również "-//-" lub "\'\'"',
+        'Ilość oddanej krwi (bez ml)': 'Wpisz ilość oddanej krwi bez ml i bez dodatkowych znaków, np. 12000',
+        'Nazwisko': 'Wpisz nazwisko tak, jak jest na karcie, np. ĆWIKLIŃSKI',
+        'Imię': 'Wpisz imię tak, jak jest na karcie, np. MARIUSZ',
+        'Data urodzenia': 'Wpisz datę urodzenia tak, jak jest na karcie, np. 22.10.1975',
+        'Nr': 'Wpisz numer tak, jak jest na karcie, np. 2986/Gd',
+        'Dodatkowe informacje (np. duplikaty)': 'Wpisz dodatkowe informacje wpisane poza wyznaczonymi polami (ale nie PESEL), np. wydane duplikaty',
+      }
+      return tooltips[key] || `Sprawdź poprawność pola: ${key}`
+    },
+    initializeTooltips() {
+      // Use Bootstrap's tooltip API if available
+      this.$nextTick(() => {
+        const tooltipTriggerList = this.$el.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(el => {
+          if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+            new bootstrap.Tooltip(el);
+          }
+        });
+      });
     }
   }
 }
@@ -34,8 +67,9 @@ export default {
     <hr v-if="!$parent || $parent.$options.name !== 'DynamicForm'" />
 
     <div :class="getSectionClass(key)">
-      <label class="form-label">
+      <label class="form-label" :title="getTooltipText(key)" data-bs-toggle="tooltip" data-bs-placement="top">
         {{ key }}:
+        <i class="bi bi-info-circle text-muted ms-1 tooltip-icon"></i>
       </label>
 
       <div v-if="typeof value === 'object' && value !== null" class="inputs-row">
@@ -83,5 +117,39 @@ export default {
 
 .inputs-row {
   margin-top: 10px;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  cursor: help;
+}
+
+.tooltip-icon {
+  cursor: help;
+  font-size: 0.9em;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.tooltip-icon:hover {
+  opacity: 1;
+  color: #007bff;
+}
+
+/* Custom tooltip styling */
+:deep(.tooltip) {
+  font-size: 0.875rem;
+}
+
+:deep(.tooltip-inner) {
+  max-width: 300px;
+  text-align: left;
+  padding: 8px 12px;
+  background-color: #333;
+  border-radius: 6px;
 }
 </style>
