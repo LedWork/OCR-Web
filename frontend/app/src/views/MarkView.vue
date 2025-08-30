@@ -327,7 +327,7 @@ export default {
     <!-- Rate limit message -->
     <div class="text-center" v-if="isRateLimited">
       <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
-      <p class="lead mb-4">Spróbuj ponownie za {{ remainingThrottleTime() }} sekund</p>
+      <p class="lead mb-4">Spróbuj ponownie za kilka sekund</p>
       
       <div class="d-flex gap-3 justify-content-center">
         <button
