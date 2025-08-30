@@ -224,17 +224,7 @@ export default {
     this.stopCountdown();
   },
   
-  watch: {
-    // Watch for changes in lastCardRequestTime to ensure countdown is running
-    lastCardRequestTime(newVal) {
-      if (newVal) {
-        // When a new request time is set, ensure countdown is running
-        this.$nextTick(() => {
-          this.ensureCountdownRunning();
-        });
-      }
-    }
-  },
+
 }
 </script>
 <template>
