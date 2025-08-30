@@ -327,7 +327,7 @@ export default {
     <!-- Rate limit message -->
     <div class="text-center" v-if="isRateLimited">
       <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
-      <p class="lead mb-4">Spróbuj ponownie za {{ countdown }} sekund</p>
+      <p class="lead mb-4">Spróbuj ponownie za {{ remainingThrottleTime() }} sekund</p>
       
       <div class="d-flex gap-3 justify-content-center">
         <button
@@ -336,7 +336,6 @@ export default {
           class="btn btn-lg btn-primary">
           <span v-if="!canRequestCard">
             Pobierz nową kartę
-            <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
           </span>
           <span v-else>Pobierz nową kartę</span>
         </button>
