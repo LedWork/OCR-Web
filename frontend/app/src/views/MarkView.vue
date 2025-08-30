@@ -28,6 +28,7 @@ export default {
       lastCardRequestTime: null, // Track when we last requested a card
       countdown: 0, // Countdown for the throttle
       countdownInterval: null, // Interval ID for the countdown
+      isRateLimited: false, // Track if we're rate limited vs no cards available
     }
   },
   computed: {
@@ -43,6 +44,10 @@ export default {
     
     shouldShowMainContent() {
       return !this.loading && this.cardData;
+    },
+    
+    shouldShowRateLimitLoading() {
+      return this.isRateLimited && this.countdown > 0;
     }
   },
   methods: {
@@ -69,6 +74,9 @@ export default {
         this.jsonData = jsonData;
         this.cardData = cardData;
         
+        // Reset rate limit flag since we successfully got a card
+        this.isRateLimited = false;
+        
         // Update last request time and start countdown
         this.lastCardRequestTime = Date.now();
         this.startCountdown();
@@ -79,11 +87,28 @@ export default {
         // Check if the error is due to no more cards available
         if (error.response && error.response.status === 400 && 
             error.response.data && error.response.data.error === "No cards available in the database.") {
-          // No more cards available, redirect to thanks view
-          this.$router.push({name: 'thanks'})
+          // No more cards available, set flag and clear data
+          this.isRateLimited = false;
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
+        } else if (error.response && error.response.status === 429) {
+          // Rate limit exceeded, set flag and clear data
+          this.isRateLimited = true;
+          this.cardData = null;
+          this.image = null;
+          this.imageCode = '';
+          this.jsonData = {};
+          
+          // If we have a last request time but no countdown running, start it
+          // This ensures users can see the remaining time
+          if (this.lastCardRequestTime && !this.countdownInterval) {
+            this.startCountdown();
+          }
         } else {
-          // For other errors (including rate limiting), clear the card data
-          // This will show the "Zbyt szybkie żądania" message
+          // For other errors, assume rate limiting and clear the card data
+          this.isRateLimited = true;
           this.cardData = null;
           this.image = null;
           this.imageCode = '';
@@ -190,6 +215,7 @@ export default {
       // Reset the countdown and get a new card
       this.stopCountdown();
       this.lastCardRequestTime = null;
+      this.isRateLimited = false; // Reset rate limit flag
       await this.getCard();
       
       // If we successfully got a card, also load the image
@@ -298,7 +324,8 @@ export default {
   
   <!-- No cards available or rate limit reached -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
-    <div class="text-center">
+    <!-- Rate limit message -->
+    <div class="text-center" v-if="isRateLimited">
       <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
       <p class="lead mb-4">Spróbuj ponownie za {{ countdown }} sekund</p>
       
@@ -317,6 +344,18 @@ export default {
         <button
           @click="goToThanks"
           class="btn btn-lg btn-danger">
+          ZAKOŃCZ SPRAWDZANIE
+        </button>
+      </div>
+    </div>
+    
+    <!-- No more cards message -->
+    <div class="text-center" v-else>
+      <h1 class="display-4 text-center mb-3 mt-5">KONIEC KART DO WYPEŁNIENIA</h1>
+      <div class="d-flex gap-3 justify-content-center">
+        <button
+          @click="goToThanks"
+          class="btn btn-lg btn-danger w-auto">
           ZAKOŃCZ SPRAWDZANIE
         </button>
       </div>
