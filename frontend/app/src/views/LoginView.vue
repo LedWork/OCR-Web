@@ -64,6 +64,10 @@ export default {
         this.error = error.response.data.message
       }
     },
+    requestPassword() {
+      // Redirect to welcome page for password request
+      this.$router.push({ name: 'WelcomeView' })
+    },
   },
   async mounted() {
     if (globalState.isAuthenticated) {
@@ -102,6 +106,9 @@ export default {
         <div class="align-items-center d-flex flex-column justify-content-between">
           <button class="btn btn-lg btn-primary w-50 mb-3" @click="goToAgreement">
             ZALOGUJ SIĘ
+          </button>
+          <button class="btn btn-outline-secondary w-50 mb-3" @click="requestPassword">
+            Poproś o hasło
           </button>
         </div>
       </div>
