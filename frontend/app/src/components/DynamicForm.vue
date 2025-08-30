@@ -69,7 +69,7 @@ export default {
     <div :class="getSectionClass(key)">
       <label class="form-label" :title="getTooltipText(key)" data-bs-toggle="tooltip" data-bs-placement="top">
         {{ key }}:
-        <i class="bi bi-info-circle text-muted ms-1 tooltip-icon"></i>
+        <span class="tooltip-indicator">?</span>
       </label>
 
       <div v-if="typeof value === 'object' && value !== null" class="inputs-row">
@@ -128,16 +128,45 @@ export default {
   cursor: help;
 }
 
-.tooltip-icon {
+.tooltip-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
   cursor: help;
-  font-size: 0.9em;
-  opacity: 0.7;
-  transition: opacity 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.tooltip-icon:hover {
-  opacity: 1;
-  color: #007bff;
+.tooltip-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  cursor: help;
+  transition: all 0.2s ease;
+  border-radius: 50%;
+  background-color: #e9ecef;
+  color: #6c757d;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 1;
+  animation: subtle-glow 3s ease-in-out infinite;
+}
+
+@keyframes subtle-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.2);
+  }
+}
+
+.tooltip-indicator:hover {
+  background-color: #007bff;
+  color: white;
+  transform: scale(1.05);
 }
 
 /* Custom tooltip styling */
