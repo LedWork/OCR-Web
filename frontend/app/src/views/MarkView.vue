@@ -183,6 +183,8 @@ export default {
           // Only try to load image if we still have a card (getCard didn't redirect)
           if (this.cardData) {
             this.image = await loadImage(this.imageCode)
+            // Focus on first form field after submitting and loading next card
+            this.focusFirstFormField();
           }
         } else {
           alert('Error: ' + response.data.error)
@@ -226,10 +228,24 @@ export default {
       if (this.cardData && this.imageCode) {
         try {
           this.image = await loadImage(this.imageCode);
+          // Focus on first form field after loading new card
+          this.focusFirstFormField();
         } catch (error) {
           console.error('Error loading image:', error);
         }
       }
+    },
+    
+    focusFirstFormField() {
+      // Focus on the first form field (Nazwisko) after a short delay to ensure DOM is updated
+      this.$nextTick(() => {
+        setTimeout(() => {
+          const firstInput = this.$el.querySelector('input[type="text"]');
+          if (firstInput) {
+            firstInput.focus();
+          }
+        }, 100);
+      });
     }
   },
   async mounted() {
@@ -241,6 +257,8 @@ export default {
       // Only try to load image if we have a card
       if (this.cardData) {
         this.image = await loadImage(this.imageCode)
+        // Focus on first form field after initial load
+        this.focusFirstFormField();
       }
     } catch (error) {
       console.error('Error in mounted:', error)
@@ -291,7 +309,7 @@ export default {
             
             <!-- Fixed button at bottom -->
             <div class="button-container mt-3">
-              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit">
+              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit" tabindex="-1">
                 <span v-if="loading">ŁADOWANIE...</span>
                 <span v-else-if="!canRequestCard">
                   WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
@@ -335,7 +353,8 @@ export default {
         <button
           @click="getNewCard"
           :disabled="!canRequestCard"
-          class="btn btn-lg btn-primary">
+          class="btn btn-lg btn-primary"
+          tabindex="-1">
           <span v-if="!canRequestCard">
             Pobierz nową kartę
           </span>
@@ -344,7 +363,8 @@ export default {
         
         <button
           @click="goToThanks"
-          class="btn btn-lg btn-danger">
+          class="btn btn-lg btn-danger"
+          tabindex="-1">
           ZAKOŃCZ SPRAWDZANIE
         </button>
       </div>
@@ -356,7 +376,8 @@ export default {
       <div class="d-flex gap-3 justify-content-center">
         <button
           @click="goToThanks"
-          class="btn btn-lg btn-danger w-auto">
+          class="btn btn-lg btn-danger w-auto"
+          tabindex="-1">
           ZAKOŃCZ SPRAWDZANIE
         </button>
       </div>
@@ -373,6 +394,7 @@ export default {
         @mouseleave="showFinishTooltip = false"
         @click="goToThanks"
         aria-label="Zakończ sprawdzanie"
+        tabindex="-1"
       >
         ✕
       </button>
@@ -392,6 +414,7 @@ export default {
         @mouseenter="showTooltip = true" 
         @mouseleave="showTooltip = false"
         aria-label="Pomoc i kontakt"
+        tabindex="-1"
       >
         ?
       </button>
@@ -563,6 +586,25 @@ export default {
 .help-tooltip a:hover {
   color: #0056b3;
   text-decoration: underline;
+}
+
+/* Focus management styles */
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button[tabindex="-1"]:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure form inputs have clear focus styles */
+input[type="text"]:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
 @media (max-width: 768px) and (orientation: portrait) {

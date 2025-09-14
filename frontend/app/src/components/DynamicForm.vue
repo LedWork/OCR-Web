@@ -60,6 +60,22 @@ export default {
     updateNestedValue(key, updatedValue) {
       this.$emit('update:value', { ...this.value, [key]: updatedValue })
     },
+    handleKeyDown(event, currentKey, isNested = false, parentKey = null) {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        this.focusNextField(event.target, currentKey, isNested, parentKey);
+      }
+    },
+    focusNextField(currentInput, currentKey, isNested = false, parentKey = null) {
+      const allInputs = Array.from(this.$el.querySelectorAll('input[type="text"]'));
+      const currentIndex = allInputs.indexOf(currentInput);
+      
+      if (currentIndex < allInputs.length - 1) {
+        const nextInput = allInputs[currentIndex + 1];
+        nextInput.focus();
+        nextInput.select(); // Select all text for easy replacement
+      }
+    },
     getSectionClass(key) {
       if (key === 'III st.') return 'section-iii'
       if (key === 'II st.') return 'section-ii'
@@ -109,6 +125,7 @@ export default {
             <input
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
+              @keydown="handleKeyDown($event, k)"
               :placeholder="k"
               :name="k"
               :readonly="readonly"
@@ -130,6 +147,7 @@ export default {
             <input
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
+              @keydown="handleKeyDown($event, k)"
               :placeholder="k"
               :name="k"
               :readonly="readonly"
@@ -157,6 +175,7 @@ export default {
             <input
               :value="value[block.key][k]"
               @input="updateNestedValue(block.key, { ...value[block.key], [k]: $event.target.value })"
+              @keydown="handleKeyDown($event, k, true, block.key)"
               :placeholder="k"
               :name="k"
               :readonly="readonly"
@@ -176,6 +195,7 @@ export default {
         <input
           :value="value[block.key]"
           @input="updateValue(block.key, $event.target.value)"
+          @keydown="handleKeyDown($event, block.key)"
           :placeholder="block.key"
           :name="block.key"
           :readonly="readonly"
@@ -379,4 +399,16 @@ export default {
   background-color: #333;
   border-radius: 6px;
 }
+
+/* Enhanced focus styles for form inputs */
+.personal-info-input:focus,
+.stage-input:focus,
+.form-control:focus {
+  outline: 2px solid #007bff;
+  outline-offset: 2px;
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Ensure proper tab order - handled by HTML tabindex attribute */
 </style>
