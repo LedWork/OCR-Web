@@ -11,6 +11,44 @@ export default {
       default: false,
     }
   },
+  computed: {
+    renderBlocks() {
+      // Build a list of renderable blocks describing desired layout
+      const data = this.value || {}
+      const processed = new Set()
+      const blocks = []
+
+      // Top pairs: Nazwisko + Imię
+      if (data['Nazwisko'] !== undefined && data['Imię'] !== undefined) {
+        blocks.push({ type: 'pair', keys: ['Nazwisko', 'Imię'] })
+        processed.add('Nazwisko'); processed.add('Imię')
+      }
+
+      // Top pairs: PESEL + Data urodzenia
+      if (data['PESEL'] !== undefined && data['Data urodzenia'] !== undefined) {
+        blocks.push({ type: 'pair', keys: ['PESEL', 'Data urodzenia'] })
+        processed.add('PESEL'); processed.add('Data urodzenia')
+      }
+
+      // Stage sections in order
+      const stageOrder = ['III st.', 'II st.', 'I st.']
+      stageOrder.forEach((stageKey) => {
+        if (data[stageKey] !== undefined && typeof data[stageKey] === 'object') {
+          blocks.push({ type: 'stage', key: stageKey, value: data[stageKey] })
+          processed.add(stageKey)
+        }
+      })
+
+      // Any remaining fields (fallback)
+      Object.keys(data).forEach((key) => {
+        if (!processed.has(key)) {
+          blocks.push({ type: 'field', key })
+        }
+      })
+
+      return blocks
+    }
+  },
   mounted() {
     // Initialize Bootstrap tooltips
     this.initializeTooltips();
@@ -62,30 +100,67 @@ export default {
 </script>
 
 <template>
-  <div v-for="(value, key) in value" :key="key" class="w-100">
-
-    <hr v-if="!$parent || $parent.$options.name !== 'DynamicForm'" />
-
-    <div :class="getSectionClass(key)">
-      <label class="form-label" :title="getTooltipText(key)" data-bs-toggle="tooltip" data-bs-placement="top">
-        {{ key }}:
-        <span class="tooltip-indicator">?</span>
-      </label>
-
-      <div v-if="typeof value === 'object' && value !== null" class="inputs-row">
-        <DynamicForm :value="value" @update:value="updateNestedValue(key, $event)" />
+  <div class="w-100">
+    <div v-for="(block, idx) in renderBlocks" :key="idx" class="w-100">
+      <!-- Pair rows (two inputs in one row) -->
+      <div v-if="block.type === 'pair'" class="row g-2 mb-2">
+        <div v-for="k in block.keys" :key="k" class="col">
+          <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+            {{ k }}:
+            <span class="tooltip-indicator">?</span>
+          </label>
+          <input
+            :value="value[k]"
+            @input="updateValue(k, $event.target.value)"
+            :placeholder="k"
+            :name="k"
+            :readonly="readonly"
+            type="text"
+            class="form-control"
+          />
+        </div>
       </div>
 
-      <input
-        v-else
-        :value="value"
-        @input="updateValue(key, $event.target.value)"
-        :placeholder="key"
-        :name="key"
-        :readonly="readonly"
-        type="text"
-        class="form-control"
-      />
+      <!-- Stage sections (all fields in one row) -->
+      <div v-else-if="block.type === 'stage'" :class="getSectionClass(block.key)" class="mb-2">
+        <label class="form-label" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
+          {{ block.key }}:
+          <span class="tooltip-indicator">?</span>
+        </label>
+        <div class="row g-2 inputs-row">
+          <div v-for="(v, k) in block.value" :key="k" class="col">
+            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}
+            </label>
+            <input
+              :value="value[block.key][k]"
+              @input="updateNestedValue(block.key, { ...value[block.key], [k]: $event.target.value })"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback single fields -->
+      <div v-else-if="block.type === 'field'" class="mb-2">
+        <label class="form-label" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
+          {{ block.key }}:
+          <span class="tooltip-indicator">?</span>
+        </label>
+        <input
+          :value="value[block.key]"
+          @input="updateValue(block.key, $event.target.value)"
+          :placeholder="block.key"
+          :name="block.key"
+          :readonly="readonly"
+          type="text"
+          class="form-control"
+        />
+      </div>
     </div>
   </div>
 </template>
