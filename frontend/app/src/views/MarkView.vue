@@ -33,6 +33,14 @@ export default {
       isRateLimited: false, // Track if we're rate limited vs no cards available
       showTooltip: false,
       showFinishTooltip: false,
+      // Zoom functionality
+      zoomLevel: 1,
+      zoomMin: 0.5,
+      zoomMax: 3,
+      zoomStep: 0.1,
+      imagePosition: { x: 0, y: 0 },
+      isDragging: false,
+      dragStart: { x: 0, y: 0 },
     }
   },
   computed: {
@@ -246,6 +254,65 @@ export default {
           }
         }, 100);
       });
+    },
+    
+    // Zoom functionality methods
+    handleWheel(event) {
+      event.preventDefault();
+      
+      const delta = event.deltaY > 0 ? -this.zoomStep : this.zoomStep;
+      const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
+      
+      if (newZoom !== this.zoomLevel) {
+        // Calculate zoom point relative to image center
+        const rect = event.currentTarget.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        // Update zoom level
+        this.zoomLevel = newZoom;
+        
+        // Adjust position to zoom towards mouse cursor
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        
+        const zoomFactor = newZoom / (this.zoomLevel - delta);
+        this.imagePosition.x = centerX - (centerX - this.imagePosition.x) * zoomFactor - (mouseX - centerX) * (zoomFactor - 1);
+        this.imagePosition.y = centerY - (centerY - this.imagePosition.y) * zoomFactor - (mouseY - centerY) * (zoomFactor - 1);
+      }
+    },
+    
+    handleMouseDown(event) {
+      if (this.zoomLevel > 1) {
+        this.isDragging = true;
+        this.dragStart = { x: event.clientX - this.imagePosition.x, y: event.clientY - this.imagePosition.y };
+        event.preventDefault();
+      }
+    },
+    
+    handleMouseMove(event) {
+      if (this.isDragging && this.zoomLevel > 1) {
+        this.imagePosition.x = event.clientX - this.dragStart.x;
+        this.imagePosition.y = event.clientY - this.dragStart.y;
+        event.preventDefault();
+      }
+    },
+    
+    handleMouseUp() {
+      this.isDragging = false;
+    },
+    
+    resetZoom() {
+      this.zoomLevel = 1;
+      this.imagePosition = { x: 0, y: 0 };
+    },
+    
+    handleKeyDown(event) {
+      // Reset zoom with 'R' key
+      if (event.key === 'r' || event.key === 'R') {
+        this.resetZoom();
+        event.preventDefault();
+      }
     }
   },
   async mounted() {
@@ -260,6 +327,11 @@ export default {
         // Focus on first form field after initial load
         this.focusFirstFormField();
       }
+      
+      // Add event listeners for zoom functionality
+      document.addEventListener('mousemove', this.handleMouseMove);
+      document.addEventListener('mouseup', this.handleMouseUp);
+      document.addEventListener('keydown', this.handleKeyDown);
     } catch (error) {
       console.error('Error in mounted:', error)
     } finally {
@@ -270,6 +342,11 @@ export default {
   beforeUnmount() {
     // Clean up countdown interval when component is destroyed
     this.stopCountdown();
+    
+    // Clean up event listeners
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', this.handleMouseUp);
+    document.removeEventListener('keydown', this.handleKeyDown);
   },
   
 
@@ -293,14 +370,38 @@ export default {
         class="split-pane-main"
       >
         <template #paneL>
-          <div class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100">
+          <div 
+            class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100"
+            @wheel="handleWheel"
+            @mousedown="handleMouseDown"
+            :class="{ dragging: isDragging }"
+          >
             <img
               class="img-fluid card-image-clickable"
               :src="image"
               alt="Image"
+              :style="{
+                transform: `scale(${zoomLevel}) translate(${imagePosition.x}px, ${imagePosition.y}px)`,
+                transformOrigin: 'center center',
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+              }"
               @click="openImageModal"
-              title="Kliknij, aby powiększyć"
+              :title="zoomLevel > 1 ? 'Kliknij, aby powiększyć | Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset' : 'Kliknij, aby powiększyć | Przewiń, aby przybliżyć/oddalić'"
             />
+            
+            <!-- Zoom controls -->
+            <div v-if="zoomLevel > 1" class="zoom-controls">
+              <div class="zoom-indicator">
+                {{ Math.round(zoomLevel * 100) }}%
+              </div>
+              <button 
+                class="btn btn-sm btn-outline-secondary zoom-reset-btn"
+                @click="resetZoom"
+                title="Resetuj powiększenie (R)"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </template>
         <template #paneR>
@@ -476,6 +577,8 @@ export default {
 .container-img {
   height: 100vh;
   cursor: zoom-in;
+  overflow: hidden;
+  position: relative;
 }
 
 .card-image-clickable {
@@ -487,6 +590,48 @@ export default {
   border: 2px solid #eee;
   border-radius: 8px;
   transition: box-shadow 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.container-img:active .card-image-clickable {
+  cursor: grabbing;
+}
+
+.container-img.dragging .card-image-clickable {
+  cursor: grabbing;
+}
+
+/* Zoom controls */
+.zoom-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.zoom-indicator {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+}
+
+.zoom-reset-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 .card-image-clickable:hover {
   box-shadow: 0 0 10px #2196f3;
