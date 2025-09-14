@@ -23,30 +23,30 @@ export default {
 </script>
 <template>
   <div id="ins-main"
-       class="d-flex flex-column justify-content-between align-items-center mt-1 mt-md-4"
+       class="d-flex flex-column justify-content-between align-items-center mt-1"
        v-if="!loading">
 
-    <div class="m-3 align-items-center w-50 d-flex justify-content-center">
-      <button v-if="admin" class="btn btn-lg w-100 btn-secondary" @click="goToAdmin">ADMIN PANEL</button>
+    <div class="m-2 align-items-center w-50 d-flex justify-content-center">
+      <button v-if="admin" class="btn btn-sm w-100 btn-secondary" @click="goToAdmin">ADMIN PANEL</button>
     </div>
 
-    <div class="card border-light-subtle mb-md-5 mb-1 instruction-card"
-         style="max-width: 70%; width:auto; max-height:70%; height:auto; overflow-y: auto !important;">
-      <div class="card-body p-4">
-        <h1 class="text-center mb-4">Instrukcja</h1>
+    <div class="card border-light-subtle mb-2 instruction-card"
+         style="max-width: 80%; width:auto; max-height:75vh; height:auto; overflow-y: auto !important;">
+      <div class="card-body p-3">
+        <h2 class="text-center mb-3">Instrukcja</h2>
         <div class="instruction-content">
-          <p class="text-justify fs-6 mb-4">
+          <p class="text-justify fs-6 mb-3">
             Witamy w systemie ręcznej weryfikacji kart Zasłużonych Honorowych Dawców Krwi Polskiego Czerwonego Krzyża.
           </p>
           
-          <p class="text-justify fs-6 mb-3">
+          <p class="text-justify fs-6 mb-2">
             Po kliknięciu przycisku <b>"Przejdź dalej"</b> zostanie wyświetlony skan karty Zasłużonego Honorowego Dawcy Krwi 
             wraz z formularzem zawierającym automatycznie odczytane dane. Każde pole formularza jest oznaczone etykietą odpowiadającą oznaczeniom na karcie, 
             zachowując podobną kolejność jak w oryginale. Prosimy o weryfikację poprawności odczytanych danych we wszystkich polach, zgodnie z poniższymi zasadami:
           </p>
 
-          <div class="rules-section mb-4">
-            <h5 class="mb-3 text-primary">Zasady weryfikacji:</h5>
+          <div class="rules-section mb-3">
+            <h6 class="mb-2 text-primary">Zasady weryfikacji:</h6>
             <ul class="rules-list">
               <li>W przypadku błędów należy wprowadzić poprawną wartość.</li>
               <li>Wartości w polach powinny odzwierciedlać rzeczywistość, nie powinny być zmieniane.</li>
@@ -57,16 +57,16 @@ export default {
           </div>
           
           <div class="action-section">
-            <p class="text-justify fs-6 mb-3">
+            <p class="text-justify fs-6 mb-2">
               Po zweryfikowaniu wszystkich pól, należy kliknąć przycisk <b>"Wyślij kartę i przejdź do następnej"</b>, 
               aby wysłać kartę do systemu i przejść do kolejnego dokumentu.
             </p>
             
-            <p class="text-justify fs-6 mb-3">
+            <p class="text-justify fs-6 mb-2">
               Aby przerwać proces weryfikacji, należy użyć przycisku <b>"X - Zakończ sprawdzanie"</b>.
             </p>
             
-            <div class="alert alert-warning mt-3" role="alert">
+            <div class="alert alert-warning mt-2" role="alert">
               <strong>Uwaga:</strong> Użycie przycisku "Zakończ sprawdzanie" spowoduje, że aktualnie weryfikowana karta nie zostanie zapisana w systemie.
             </div>
           </div>
@@ -74,7 +74,7 @@ export default {
       </div>
     </div>
 
-    <div class="m-3 align-items-center w-50 d-flex justify-content-center mt-1 mt-md-5">
+    <div class="m-2 align-items-center w-50 d-flex justify-content-center">
       <button class="btn btn-primary w-100 btn-lg" @click="goToMarking">PRZEJDŹ DALEJ</button>
     </div>
   </div>
@@ -91,26 +91,27 @@ export default {
   }
 
   .instruction-content {
-    line-height: 1.6;
+    line-height: 1.4;
   }
 
   .rules-section {
     background-color: #f8f9fa;
-    border-radius: 8px;
-    padding: 1.5rem;
-    border-left: 4px solid #0d6efd;
+    border-radius: 6px;
+    padding: 1rem;
+    border-left: 3px solid #0d6efd;
   }
 
   .rules-list {
     margin: 0;
-    padding-left: 1.5rem;
+    padding-left: 1.2rem;
     list-style-type: disc;
   }
 
   .rules-list li {
-    margin-bottom: 0.75rem;
-    padding-left: 0.5rem;
-    line-height: 1.5;
+    margin-bottom: 0.4rem;
+    padding-left: 0.3rem;
+    line-height: 1.3;
+    font-size: 0.9rem;
   }
 
   .rules-list li:last-child {
@@ -119,8 +120,8 @@ export default {
 
   .action-section {
     background-color: #fff;
-    border-radius: 8px;
-    padding: 1rem 0;
+    border-radius: 6px;
+    padding: 0.5rem 0;
   }
 
   .alert {
@@ -135,38 +136,45 @@ export default {
 
   @media(max-width: 1000px) {
     div.d-flex {
-      margin-top: 80px !important;
+      margin-top: 60px !important;
       justify-content: start !important;
     }
 
     div.card {
       max-width: 95% !important;
+      max-height: 70vh !important;
     }
 
     .rules-section {
-      padding: 1rem;
+      padding: 0.8rem;
     }
   }
 
   @media(max-width: 768px) {
     div.card {
       margin-bottom: 0 !important;
+      max-height: 65vh !important;
     }
 
     .card-body {
-      padding: 1.5rem !important;
+      padding: 1rem !important;
     }
 
     .rules-section {
-      padding: 0.75rem;
+      padding: 0.6rem;
     }
 
     .rules-list {
-      padding-left: 1rem;
+      padding-left: 0.8rem;
+    }
+
+    .rules-list li {
+      font-size: 0.85rem;
+      margin-bottom: 0.3rem;
     }
 
     button.btn.btn-lg {
-      font-size: 5vw !important;
+      font-size: 4vw !important;
       width: 100% !important;
     }
   }
