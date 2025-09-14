@@ -23,7 +23,7 @@ def user_exists(data):
     logger.info(f"Checking if user exists with data: {data}")
     db = get_db()
     collection = db['users']
-    login = data['login']
+    login = data['login'].lower()  # Normalize to lowercase
     logger.info(f"Looking for user with login: {login}")
 
     existing_user = collection.find_one({"login": login})
@@ -96,6 +96,9 @@ def create_user(data):
     db = get_db()
     collection = db['users']
 
+    # Normalize email to lowercase for case-insensitive storage
+    data['login'] = data['login'].lower()
+    
     data['password'] = ''
     data['is_super_user'] = False
     data['is_revoked'] = False
@@ -119,7 +122,9 @@ def generate_user_password(login):
     logger.info(f"Generating password for user with login: {login}")
     db = get_db()
     collection = db['users']
-    user = collection.find_one({'login': login})
+    # Normalize email to lowercase for case-insensitive lookup
+    normalized_login = login.lower()
+    user = collection.find_one({'login': normalized_login})
 
     if user is None:
         logger.warning(f"User with login '{login}' not found")
@@ -133,8 +138,9 @@ def generate_user_password(login):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
     logger.info(f"Password hashed successfully")
 
+    # Normalize email to lowercase for update as well
     update_result = collection.update_one(
-        {'login': login},
+        {'login': normalized_login},
         {'$set': {'password': hashed_password, 'created_at': datetime.datetime.now()}}
     )
     logger.info(f"Password updated in database. Modified count: {update_result.modified_count}")
@@ -232,15 +238,17 @@ def revoke_user(login):
     db = get_db()
     collection = db['users']
     
-    # First check if user exists
-    existing_user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    normalized_login = login.lower()
+    existing_user = collection.find_one({"login": normalized_login})
     if existing_user is None:
         logger.warning(f"User with login '{login}' not found for revocation")
         return False
     
     logger.info(f"Found user to revoke: {existing_user.get('login')} (ID: {existing_user.get('_id')})")
+    # Normalize email to lowercase for update as well
     result = collection.update_one(
-        {"login": login},
+        {"login": normalized_login},
         {"$set": {"is_revoked": True}}
     )
     revoked = result.modified_count > 0
@@ -253,15 +261,17 @@ def unrevoke_user(login):
     db = get_db()
     collection = db['users']
     
-    # First check if user exists
-    existing_user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    normalized_login = login.lower()
+    existing_user = collection.find_one({"login": normalized_login})
     if existing_user is None:
         logger.warning(f"User with login '{login}' not found for unrevocation")
         return False
     
     logger.info(f"Found user to unrevoke: {existing_user.get('login')} (ID: {existing_user.get('_id')})")
+    # Normalize email to lowercase for update as well
     result = collection.update_one(
-        {"login": login},
+        {"login": normalized_login},
         {"$set": {"is_revoked": False}}
     )
     unrevoked = result.modified_count > 0
