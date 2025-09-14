@@ -522,6 +522,8 @@ export default {
       <div v-if="showTooltip" class="help-tooltip">
         <p class="mb-0">
           <small>
+            Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset
+            <br><br>
             Jeśli masz pytania lub problemy, skontaktuj się z nami pod adresem: 
             <a href="mailto:skany.hdkpck@pck.pomorze.pl" class="text-decoration-none">
               skany.hdkpck@pck.pomorze.pl
