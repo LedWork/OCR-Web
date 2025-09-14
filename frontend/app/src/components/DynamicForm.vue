@@ -103,7 +103,7 @@ export default {
   <div class="w-100">
     <div v-for="(block, idx) in renderBlocks" :key="idx" class="w-100">
       <!-- Pair rows (two inputs in one row) -->
-      <div v-if="block.type === 'pair'" class="row g-2 mb-2">
+      <div v-if="block.type === 'pair'" class="row g-2 mb-1">
         <div v-for="k in block.keys" :key="k" class="col">
           <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
             {{ k }}:
@@ -121,15 +121,17 @@ export default {
         </div>
       </div>
 
-      <!-- Stage sections (all fields in one row) -->
+      <!-- Stage sections (compact layout) -->
       <div v-else-if="block.type === 'stage'" :class="getSectionClass(block.key)" class="mb-2">
-        <label class="form-label" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
-          {{ block.key }}:
-          <span class="tooltip-indicator">?</span>
-        </label>
-        <div class="row g-2 inputs-row">
-          <div v-for="(v, k) in block.value" :key="k" class="col d-flex flex-column">
-            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+        <div class="stage-header">
+          <label class="form-label stage-title" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
+            {{ block.key }}:
+            <span class="tooltip-indicator">?</span>
+          </label>
+        </div>
+        <div class="stage-inputs-grid">
+          <div v-for="(v, k) in block.value" :key="k" class="stage-input-group">
+            <label class="stage-field-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
               {{ k }}:
               <span class="tooltip-indicator">?</span>
             </label>
@@ -140,14 +142,14 @@ export default {
               :name="k"
               :readonly="readonly"
               type="text"
-              class="form-control"
+              class="form-control stage-input"
             />
           </div>
         </div>
       </div>
 
       <!-- Fallback single fields -->
-      <div v-else-if="block.type === 'field'" class="mb-2">
+      <div v-else-if="block.type === 'field'" class="mb-1">
         <label class="form-label" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
           {{ block.key }}:
           <span class="tooltip-indicator">?</span>
@@ -169,30 +171,74 @@ export default {
 <style scoped>
 .section-iii {
   background-color: #e3f2fd;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #2196f3;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #2196f3;
 }
 
 .section-ii {
   background-color: #f3e5f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #9c27b0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #9c27b0;
 }
 
 .section-i {
   background-color: #e8f5e8;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #4caf50;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #4caf50;
 }
 
-.inputs-row {
-  margin-top: 10px;
+.stage-header {
+  margin-bottom: 6px;
+}
+
+.stage-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #333;
+}
+
+.stage-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 6px 10px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .stage-inputs-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.stage-input-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stage-field-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  cursor: help;
+}
+
+.stage-input {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  height: 32px;
+  border-radius: 4px;
 }
 
 .form-label {
@@ -200,8 +246,9 @@ export default {
   align-items: center;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   cursor: help;
+  font-size: 0.9rem;
 }
 
 .tooltip-indicator {
