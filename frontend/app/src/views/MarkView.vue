@@ -314,7 +314,7 @@ export default {
             
             <!-- Fixed button at bottom -->
             <div class="button-container mt-3">
-              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit" tabindex="-1">
+              <button type="submit" class="btn btn-success w-100 submit-button" :disabled="loading || !canRequestCard" @click="handleSubmit" tabindex="-1">
                 <span v-if="loading">ŁADOWANIE...</span>
                 <span v-else-if="!canRequestCard">
                   WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
@@ -466,6 +466,11 @@ export default {
 
 .button-container {
   flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.submit-button {
+  padding: 0.5rem 1rem; /* Reduced padding for smaller height */
+  font-size: 1rem; /* Slightly smaller font size */
 }
 
 .container-img {
