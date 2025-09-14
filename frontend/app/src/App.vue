@@ -113,8 +113,8 @@ html, body {
 
 .content-container-no-navbar {
   padding-top: 0; /* No padding when navbar is hidden */
-  min-height: 100vh; /* Use full viewport height */
-  padding-bottom: 20px; /* Small bottom padding */
+  height: 100vh; /* Use full viewport height */
+  padding-bottom: 0; /* No bottom padding */
 }
 
 .container-fluid {

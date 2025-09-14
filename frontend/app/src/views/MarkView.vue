@@ -364,13 +364,13 @@ export default {
 
 <style scoped>
 .split-pane-main {
-  height: calc(100vh - 80px);
+  height: 100vh;
   min-height: 400px;
   width: 100%;
 }
 
 .card {
-  height: calc(100vh - 80px);
+  height: 100vh;
 }
 
 .form-content-scrollable {
@@ -382,14 +382,14 @@ export default {
 }
 
 .container-img {
-  height: calc(100vh - 80px);
+  height: 100vh;
   cursor: zoom-in;
 }
 
 .card-image-clickable {
   max-width: 100%;
   max-height: 100%;
-  height: calc(100vh - 80px);
+  height: 100vh;
   object-fit: contain;
   cursor: zoom-in;
   border: 2px solid #eee;
