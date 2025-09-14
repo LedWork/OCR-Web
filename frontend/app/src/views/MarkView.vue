@@ -277,6 +277,11 @@ export default {
 </script>
 <template>
   <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="../../public/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <div class="container-fluid d-flex flex-column align-items-center h-100 px-3">
 
       <split-pane 
@@ -334,6 +339,11 @@ export default {
   
   <!-- Loading indicator -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !shouldShowRateLimitLoading">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -344,6 +354,11 @@ export default {
   
   <!-- No cards available or rate limit reached -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <!-- Rate limit message -->
     <div class="text-center" v-if="isRateLimited">
       <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
@@ -498,6 +513,30 @@ export default {
   max-height: 70vh;
   border-radius: 8px;
   margin-bottom: 10px;
+}
+
+/* PCK Logo styles */
+.pck-logo-container {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.pck-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #dc3545;
+  background-color: white;
+  padding: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.pck-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Action buttons styles */
