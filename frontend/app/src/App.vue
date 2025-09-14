@@ -29,7 +29,7 @@
         <div v-if="showFinishTooltip" class="finish-tooltip">
           <p class="mb-0">
             <small>
-              Kliknij, aby zakończyć sprawdzanie i wrócić do głównego menu
+              Kliknij, aby zakończyć sprawdzanie bez wysyłania obecnej karty
             </small>
           </p>
         </div>
