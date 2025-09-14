@@ -1,6 +1,6 @@
 <template>
   <div>
-    <nav class="navbar navbar-light bg-light fixed-top">
+    <nav v-if="!isMarkView" class="navbar navbar-light bg-light fixed-top">
       <div class="container-fluid justify-content-center">
         <img
           src="../public/pck-logo.png"
@@ -10,7 +10,7 @@
         <p class="navbar-brand mb-0 text-center">PCK-OCR</p>
       </div>
     </nav>
-    <div class="content-container">
+    <div :class="contentContainerClass">
       <RouterView />
     </div>
     <!-- Footer with contact email - only shown when authenticated -->
@@ -38,6 +38,14 @@ export default {
     return {
       globalState
     }
+  },
+  computed: {
+    isMarkView() {
+      return this.$route.name === 'marking';
+    },
+    contentContainerClass() {
+      return this.isMarkView ? 'content-container-no-navbar' : 'content-container';
+    }
   }
 }
 </script>
@@ -62,6 +70,12 @@ html, body {
   padding-top: 80px; /* Increased padding to account for fixed navbar */
   min-height: calc(100vh - 140px); /* Account for navbar and footer */
   padding-bottom: 60px; /* Add space for footer */
+}
+
+.content-container-no-navbar {
+  padding-top: 0; /* No padding when navbar is hidden */
+  min-height: 100vh; /* Use full viewport height */
+  padding-bottom: 0; /* No bottom padding to use full space */
 }
 
 .container-fluid {
