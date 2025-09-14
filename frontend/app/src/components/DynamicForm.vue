@@ -11,6 +11,40 @@ export default {
       default: false,
     }
   },
+  computed: {
+    renderBlocks() {
+      // Build a list of renderable blocks describing desired layout
+      const data = this.value || {}
+      const processed = new Set()
+      const blocks = []
+
+      // Personal info block: Nazwisko, Imię, PESEL, Data urodzenia
+      const personalInfoFields = ['Nazwisko', 'Imię', 'PESEL', 'Data urodzenia']
+      const availablePersonalFields = personalInfoFields.filter(field => data[field] !== undefined)
+      if (availablePersonalFields.length > 0) {
+        blocks.push({ type: 'personal-info', keys: availablePersonalFields })
+        availablePersonalFields.forEach(field => processed.add(field))
+      }
+
+      // Stage sections in order
+      const stageOrder = ['III st.', 'II st.', 'I st.']
+      stageOrder.forEach((stageKey) => {
+        if (data[stageKey] !== undefined && typeof data[stageKey] === 'object') {
+          blocks.push({ type: 'stage', key: stageKey, value: data[stageKey] })
+          processed.add(stageKey)
+        }
+      })
+
+      // Any remaining fields (fallback)
+      Object.keys(data).forEach((key) => {
+        if (!processed.has(key)) {
+          blocks.push({ type: 'field', key })
+        }
+      })
+
+      return blocks
+    }
+  },
   mounted() {
     // Initialize Bootstrap tooltips
     this.initializeTooltips();
@@ -62,30 +96,93 @@ export default {
 </script>
 
 <template>
-  <div v-for="(value, key) in value" :key="key" class="w-100">
-
-    <hr v-if="!$parent || $parent.$options.name !== 'DynamicForm'" />
-
-    <div :class="getSectionClass(key)">
-      <label class="form-label" :title="getTooltipText(key)" data-bs-toggle="tooltip" data-bs-placement="top">
-        {{ key }}:
-        <span class="tooltip-indicator">?</span>
-      </label>
-
-      <div v-if="typeof value === 'object' && value !== null" class="inputs-row">
-        <DynamicForm :value="value" @update:value="updateNestedValue(key, $event)" />
+  <div class="w-100">
+    <div v-for="(block, idx) in renderBlocks" :key="idx" class="w-100">
+      <!-- Personal info block (all in one row on wide screens) -->
+      <div v-if="block.type === 'personal-info'" class="personal-info-block mb-2">
+        <div class="personal-info-grid">
+          <div v-for="k in block.keys" :key="k" class="personal-info-field">
+            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
+            </label>
+            <input
+              :value="value[k]"
+              @input="updateValue(k, $event.target.value)"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control personal-info-input"
+            />
+          </div>
+        </div>
       </div>
 
-      <input
-        v-else
-        :value="value"
-        @input="updateValue(key, $event.target.value)"
-        :placeholder="key"
-        :name="key"
-        :readonly="readonly"
-        type="text"
-        class="form-control"
-      />
+      <!-- Pair rows (two inputs in one row) -->
+      <div v-else-if="block.type === 'pair'" class="row g-2 mb-1">
+        <div v-for="k in block.keys" :key="k" class="col-auto">
+          <div class="form-field-wrapper">
+            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
+            </label>
+            <input
+              :value="value[k]"
+              @input="updateValue(k, $event.target.value)"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control form-control-compact"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Stage sections (compact layout) -->
+      <div v-else-if="block.type === 'stage'" :class="getSectionClass(block.key)" class="mb-2">
+        <div class="stage-header">
+          <label class="form-label stage-title" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
+            {{ block.key }}:
+            <span class="tooltip-indicator">?</span>
+          </label>
+        </div>
+        <div class="stage-inputs-grid">
+          <div v-for="(v, k) in block.value" :key="k" class="stage-input-group">
+            <label class="stage-field-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
+            </label>
+            <input
+              :value="value[block.key][k]"
+              @input="updateNestedValue(block.key, { ...value[block.key], [k]: $event.target.value })"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control stage-input stage-input-compact"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Fallback single fields -->
+      <div v-else-if="block.type === 'field'" class="mb-1">
+        <label class="form-label" :title="getTooltipText(block.key)" data-bs-toggle="tooltip" data-bs-placement="top">
+          {{ block.key }}:
+          <span class="tooltip-indicator">?</span>
+        </label>
+        <input
+          :value="value[block.key]"
+          @input="updateValue(block.key, $event.target.value)"
+          :placeholder="block.key"
+          :name="block.key"
+          :readonly="readonly"
+          type="text"
+          class="form-control"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -93,30 +190,130 @@ export default {
 <style scoped>
 .section-iii {
   background-color: #e3f2fd;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #2196f3;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #2196f3;
 }
 
 .section-ii {
   background-color: #f3e5f5;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #9c27b0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #9c27b0;
 }
 
 .section-i {
   background-color: #e8f5e8;
-  padding: 15px;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  border-left: 4px solid #4caf50;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  border-left: 3px solid #4caf50;
 }
 
-.inputs-row {
-  margin-top: 10px;
+.stage-header {
+  margin-bottom: 6px;
+}
+
+.stage-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 0;
+  color: #333;
+}
+
+.stage-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, max-content));
+  gap: 6px 12px;
+  align-items: start;
+  justify-content: start;
+}
+
+@media (max-width: 768px) {
+  .stage-inputs-grid {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.stage-input-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stage-field-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  cursor: help;
+}
+
+.stage-input {
+  font-size: 0.85rem;
+  padding: 4px 8px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.form-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.form-control-compact {
+  width: auto;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.stage-input-compact {
+  width: auto;
+  min-width: 70px;
+  max-width: 110px;
+}
+
+.personal-info-block {
+  background-color: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #6c757d;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.personal-info-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 100%;
+}
+
+.personal-info-field {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 auto;
+  min-width: 100px;
+  max-width: 120px;
+}
+
+.personal-info-input {
+  width: 100%;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  height: 36px;
+  box-sizing: border-box;
 }
 
 .form-label {
@@ -124,8 +321,9 @@ export default {
   align-items: center;
   font-weight: 600;
   color: #333;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   cursor: help;
+  font-size: 0.9rem;
 }
 
 .tooltip-indicator {

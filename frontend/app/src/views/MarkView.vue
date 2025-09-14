@@ -9,6 +9,7 @@ import {
   loadImage,
   parseGtParse
 } from '@/scripts/utils.js'
+import { globalState } from '@/scripts/store.js'
 
 export default {
   components: {
@@ -17,6 +18,7 @@ export default {
   },
   data() {
     return {
+      globalState,
       loading: true,
       image: null,
       cardData: null,
@@ -29,6 +31,8 @@ export default {
       countdown: 0, // Countdown for the throttle
       countdownInterval: null, // Interval ID for the countdown
       isRateLimited: false, // Track if we're rate limited vs no cards available
+      showTooltip: false,
+      showFinishTooltip: false,
     }
   },
   computed: {
@@ -255,14 +259,7 @@ export default {
 </script>
 <template>
   <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
-    <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
-      <div class="row w-100 d-flex justify-content-center mb-2">
-        <button
-          @click="goToThanks"
-          class="btn btn-lg btn-danger w-75">
-          ZAKOŃCZ SPRAWDZANIE
-        </button>
-      </div>
+    <div class="container-fluid d-flex flex-column align-items-center h-100 px-3">
 
       <split-pane 
         split="vertical" 
@@ -284,20 +281,25 @@ export default {
           </div>
         </template>
         <template #paneR>
-          <div class="card border-light-subtle p-3 d-flex flex-column align-items-center overflow-auto h-100 w-100">
-            <form @submit.prevent="handleSubmit" class="w-100">
-              <DynamicForm :value="jsonData" @update:value="updateJsonData" />
-              <div class="text-center mt-3">
-                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard">
-                  <span v-if="loading">ŁADOWANIE...</span>
-                  <span v-else-if="!canRequestCard">
-                    WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
-                    <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
-                  </span>
-                  <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
-                </button>
-              </div>
-            </form>
+          <div class="card border-light-subtle p-3 d-flex flex-column h-100 w-100">
+            <!-- Scrollable form content -->
+            <div class="form-content-scrollable flex-grow-1 overflow-auto">
+              <form @submit.prevent="handleSubmit" class="w-100">
+                <DynamicForm :value="jsonData" @update:value="updateJsonData" />
+              </form>
+            </div>
+            
+            <!-- Fixed button at bottom -->
+            <div class="button-container mt-3">
+              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit">
+                <span v-if="loading">ŁADOWANIE...</span>
+                <span v-else-if="!canRequestCard">
+                  WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
+                  <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
+                </span>
+                <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
+              </button>
+            </div>
           </div>
         </template>
       </split-pane>
@@ -360,31 +362,83 @@ export default {
       </div>
     </div>
   </div>
-
+  
+  <!-- Action buttons - only shown when authenticated and on marking page -->
+  <div v-if="globalState.isAuthenticated && $route.name === 'marking'" class="action-buttons-container">
+    <!-- Finish checking button -->
+    <div class="finish-button-wrapper">
+      <button 
+        class="finish-button" 
+        @mouseenter="showFinishTooltip = true" 
+        @mouseleave="showFinishTooltip = false"
+        @click="goToThanks"
+        aria-label="Zakończ sprawdzanie"
+      >
+        ✕
+      </button>
+      <div v-if="showFinishTooltip" class="finish-tooltip">
+        <p class="mb-0">
+          <small>
+            Kliknij, aby zakończyć sprawdzanie bez wysyłania obecnej karty
+          </small>
+        </p>
+      </div>
+    </div>
+    
+    <!-- Help button -->
+    <div class="help-button-wrapper">
+      <button 
+        class="help-button" 
+        @mouseenter="showTooltip = true" 
+        @mouseleave="showTooltip = false"
+        aria-label="Pomoc i kontakt"
+      >
+        ?
+      </button>
+      <div v-if="showTooltip" class="help-tooltip">
+        <p class="mb-0">
+          <small>
+            Jeśli masz pytania lub problemy, skontaktuj się z nami pod adresem: 
+            <a href="mailto:skany.hdkpck@pck.pomorze.pl" class="text-decoration-none">
+              skany.hdkpck@pck.pomorze.pl
+            </a>
+          </small>
+        </p>
+      </div>
+    </div>
+  </div>
+  
 
 </template>
 
 <style scoped>
 .split-pane-main {
-  height: 75vh;
+  height: 100vh;
   min-height: 400px;
   width: 100%;
 }
 
 .card {
-  height: 75vh;
-  overflow-y: auto;
+  height: 100vh;
+}
+
+.form-content-scrollable {
+  min-height: 0; /* Important for flexbox scrolling */
+}
+
+.button-container {
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .container-img {
-  height: 75vh;
+  height: 100vh;
   cursor: zoom-in;
 }
 
 .card-image-clickable {
   max-width: 100%;
   max-height: 100%;
-  height: 75vh;
+  height: 100vh;
   object-fit: contain;
   cursor: zoom-in;
   border: 2px solid #eee;
@@ -423,6 +477,94 @@ export default {
   margin-bottom: 10px;
 }
 
+/* Action buttons styles */
+.action-buttons-container {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.finish-button-wrapper,
+.help-button-wrapper {
+  position: relative;
+}
+
+.finish-button,
+.help-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.finish-button {
+  background-color: #dc3545;
+}
+
+.finish-button:hover {
+  background-color: #c82333;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.help-button {
+  background-color: #007bff;
+}
+
+.help-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.finish-tooltip,
+.help-tooltip {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.finish-tooltip::after,
+.help-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  border: 8px solid transparent;
+  border-top-color: #f8f9fa;
+}
+
+.help-tooltip a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.help-tooltip a:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
 @media (max-width: 768px) and (orientation: portrait) {
   .split-pane-main {
     flex-direction: column;
@@ -430,8 +572,11 @@ export default {
     min-height: 300px;
   }
   .container-img, .card {
-    height: 40vh;
+    height: calc(50vh - 30px);
     min-height: 200px;
+  }
+  .card-image-clickable {
+    height: calc(50vh - 30px);
   }
   .modal-image {
     max-width: 95vw;
