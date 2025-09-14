@@ -24,7 +24,6 @@ export default {
       cardData: null,
       jsonData: {},
       imageCode: '',
-      showImageModal: false,
       splitPercent: 50, // Default split percentage
       isRequestingCard: false, // Prevent multiple simultaneous card requests
       lastCardRequestTime: null, // Track when we last requested a card
@@ -207,12 +206,6 @@ export default {
     goToThanks() {
       this.$router.push({name: 'thanks'})
     },
-    openImageModal() {
-      this.showImageModal = true;
-    },
-    closeImageModal() {
-      this.showImageModal = false;
-    },
     handleSplitChange(percent) {
       this.splitPercent = percent;
       // Save to session storage
@@ -385,8 +378,7 @@ export default {
                 transformOrigin: 'center center',
                 transition: isDragging ? 'none' : 'transform 0.1s ease-out'
               }"
-              @click="openImageModal"
-              :title="zoomLevel > 1 ? 'Kliknij, aby powiększyć | Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset' : 'Kliknij, aby powiększyć | Przewiń, aby przybliżyć/oddalić'"
+              :title="zoomLevel > 1 ? 'Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset' : 'Przewiń, aby przybliżyć/oddalić'"
             />
             
             <!-- Zoom controls -->
@@ -428,13 +420,6 @@ export default {
         </template>
       </split-pane>
 
-      <!-- Modal for image zoom -->
-      <div v-if="showImageModal" class="modal-backdrop-custom" @click.self="closeImageModal">
-        <div class="modal-dialog-custom">
-          <img :src="image" alt="Zoomed Image" class="modal-image" />
-          <button class="btn btn-secondary mt-2" @click="closeImageModal">Zamknij</button>
-        </div>
-      </div>
     </div>
   </div>
   
@@ -637,33 +622,6 @@ export default {
   box-shadow: 0 0 10px #2196f3;
 }
 
-/* Modal styles */
-.modal-backdrop-custom {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal-dialog-custom {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 90vw;
-  max-height: 90vh;
-}
-.modal-image {
-  max-width: 80vw;
-  max-height: 70vh;
-  border-radius: 8px;
-  margin-bottom: 10px;
-}
 
 /* PCK Logo styles */
 .pck-logo-container {
@@ -808,10 +766,6 @@ input[type="text"]:focus {
   }
   .card-image-clickable {
     height: calc(50vh - 30px);
-  }
-  .modal-image {
-    max-width: 95vw;
-    max-height: 60vh;
   }
 }
 </style>
