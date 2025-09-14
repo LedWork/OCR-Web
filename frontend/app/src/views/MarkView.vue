@@ -256,13 +256,6 @@ export default {
 <template>
   <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
     <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
-      <div class="row w-100 d-flex justify-content-center mb-2">
-        <button
-          @click="goToThanks"
-          class="btn btn-lg btn-danger w-75">
-          ZAKOŃCZ SPRAWDZANIE
-        </button>
-      </div>
 
       <split-pane 
         split="vertical" 
