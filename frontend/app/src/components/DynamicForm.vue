@@ -269,14 +269,14 @@ export default {
 
 .form-control-compact {
   width: auto;
-  min-width: 120px;
-  max-width: 200px;
+  min-width: 80px;
+  max-width: 120px;
 }
 
 .stage-input-compact {
   width: auto;
-  min-width: 100px;
-  max-width: 180px;
+  min-width: 70px;
+  max-width: 110px;
 }
 
 .personal-info-block {
@@ -304,8 +304,8 @@ export default {
   display: flex;
   flex-direction: column;
   flex: 0 0 auto;
-  min-width: 140px;
-  max-width: 180px;
+  min-width: 100px;
+  max-width: 120px;
 }
 
 .personal-info-input {
