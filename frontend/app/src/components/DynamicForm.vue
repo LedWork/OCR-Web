@@ -18,16 +18,12 @@ export default {
       const processed = new Set()
       const blocks = []
 
-      // Top pairs: Nazwisko + Imię
-      if (data['Nazwisko'] !== undefined && data['Imię'] !== undefined) {
-        blocks.push({ type: 'pair', keys: ['Nazwisko', 'Imię'] })
-        processed.add('Nazwisko'); processed.add('Imię')
-      }
-
-      // Top pairs: PESEL + Data urodzenia
-      if (data['PESEL'] !== undefined && data['Data urodzenia'] !== undefined) {
-        blocks.push({ type: 'pair', keys: ['PESEL', 'Data urodzenia'] })
-        processed.add('PESEL'); processed.add('Data urodzenia')
+      // Personal info block: Nazwisko, Imię, PESEL, Data urodzenia
+      const personalInfoFields = ['Nazwisko', 'Imię', 'PESEL', 'Data urodzenia']
+      const availablePersonalFields = personalInfoFields.filter(field => data[field] !== undefined)
+      if (availablePersonalFields.length > 0) {
+        blocks.push({ type: 'personal-info', keys: availablePersonalFields })
+        availablePersonalFields.forEach(field => processed.add(field))
       }
 
       // Stage sections in order
@@ -102,22 +98,45 @@ export default {
 <template>
   <div class="w-100">
     <div v-for="(block, idx) in renderBlocks" :key="idx" class="w-100">
+      <!-- Personal info block (all in one row on wide screens) -->
+      <div v-if="block.type === 'personal-info'" class="personal-info-block mb-2">
+        <div class="personal-info-grid">
+          <div v-for="k in block.keys" :key="k" class="personal-info-field">
+            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
+            </label>
+            <input
+              :value="value[k]"
+              @input="updateValue(k, $event.target.value)"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control personal-info-input"
+            />
+          </div>
+        </div>
+      </div>
+
       <!-- Pair rows (two inputs in one row) -->
-      <div v-if="block.type === 'pair'" class="row g-2 mb-1">
-        <div v-for="k in block.keys" :key="k" class="col">
-          <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
-            {{ k }}:
-            <span class="tooltip-indicator">?</span>
-          </label>
-          <input
-            :value="value[k]"
-            @input="updateValue(k, $event.target.value)"
-            :placeholder="k"
-            :name="k"
-            :readonly="readonly"
-            type="text"
-            class="form-control"
-          />
+      <div v-else-if="block.type === 'pair'" class="row g-2 mb-1">
+        <div v-for="k in block.keys" :key="k" class="col-auto">
+          <div class="form-field-wrapper">
+            <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
+            </label>
+            <input
+              :value="value[k]"
+              @input="updateValue(k, $event.target.value)"
+              :placeholder="k"
+              :name="k"
+              :readonly="readonly"
+              type="text"
+              class="form-control form-control-compact"
+            />
+          </div>
         </div>
       </div>
 
@@ -142,7 +161,7 @@ export default {
               :name="k"
               :readonly="readonly"
               type="text"
-              class="form-control stage-input"
+              class="form-control stage-input stage-input-compact"
             />
           </div>
         </div>
@@ -206,9 +225,10 @@ export default {
 
 .stage-inputs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 6px 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, max-content));
+  gap: 6px 12px;
   align-items: start;
+  justify-content: start;
 }
 
 @media (max-width: 768px) {
@@ -239,6 +259,81 @@ export default {
   padding: 4px 8px;
   height: 32px;
   border-radius: 4px;
+}
+
+.form-field-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.form-control-compact {
+  width: auto;
+  min-width: 120px;
+  max-width: 200px;
+}
+
+.stage-input-compact {
+  width: auto;
+  min-width: 100px;
+  max-width: 180px;
+}
+
+.personal-info-block {
+  background-color: #f8f9fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid #6c757d;
+  margin-bottom: 12px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.personal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px 12px;
+  align-items: start;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 992px) {
+  .personal-info-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px 16px;
+  }
+}
+
+@media (max-width: 991px) {
+  .personal-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 12px;
+  }
+}
+
+@media (max-width: 576px) {
+  .personal-info-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+}
+
+.personal-info-field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.personal-info-input {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.9rem;
+  padding: 6px 10px;
+  height: 36px;
+  box-sizing: border-box;
 }
 
 .form-label {
