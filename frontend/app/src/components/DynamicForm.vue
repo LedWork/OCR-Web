@@ -292,44 +292,24 @@ export default {
 }
 
 .personal-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px 12px;
-  align-items: start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: flex-start;
   width: 100%;
   max-width: 100%;
-}
-
-@media (min-width: 992px) {
-  .personal-info-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px 16px;
-  }
-}
-
-@media (max-width: 991px) {
-  .personal-info-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px 12px;
-  }
-}
-
-@media (max-width: 576px) {
-  .personal-info-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
 }
 
 .personal-info-field {
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  flex: 0 0 auto;
+  min-width: 140px;
+  max-width: 180px;
 }
 
 .personal-info-input {
   width: 100%;
-  min-width: 0;
   font-size: 0.9rem;
   padding: 6px 10px;
   height: 36px;
