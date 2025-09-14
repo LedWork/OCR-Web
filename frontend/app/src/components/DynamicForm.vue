@@ -128,9 +128,10 @@ export default {
           <span class="tooltip-indicator">?</span>
         </label>
         <div class="row g-2 inputs-row">
-          <div v-for="(v, k) in block.value" :key="k" class="col">
+          <div v-for="(v, k) in block.value" :key="k" class="col d-flex flex-column">
             <label class="form-label" :title="getTooltipText(k)" data-bs-toggle="tooltip" data-bs-placement="top">
-              {{ k }}
+              {{ k }}:
+              <span class="tooltip-indicator">?</span>
             </label>
             <input
               :value="value[block.key][k]"
