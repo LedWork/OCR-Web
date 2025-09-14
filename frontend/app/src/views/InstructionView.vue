@@ -39,13 +39,19 @@ export default {
           <br><br>
           Po kliknięciu przycisku <b>"Przejdź dalej"</b> zostanie wyświetlony skan karty Zasłużonego Honorowego Dawcy Krwi 
           wraz z formularzem zawierającym automatycznie odczytane dane. Każde pole formularza jest oznaczone etykietą odpowiadającą oznaczeniom na karcie, 
-          zachowując podobną kolejność jak w oryginale.
-          <br><br>
-          Prosimy o weryfikację poprawności odczytanych danych we wszystkich polach. W przypadku błędów należy wprowadzić poprawną wartość.
+          zachowując podobną kolejność jak w oryginale. Prosimy o weryfikację poprawności odczytanych danych we wszystkich polach, zgodnie z poniższymi zasadami:
+
+          <li> W przypadku błędów należy wprowadzić poprawną wartość. </li>
+          <li> Wartości w polach powinny odzwierciedlać rzeczywistość, nie powinny być zmieniane. </li>
+          <li> Jeśli pole jest puste, należy pozostawić je puste. </li>
+          <li> Jeśli pole zawiera znaki np. "-//-", lub "-", należy wpisać dokładnie te znaki. </li>
+          <li> Nie wszystkie dane z karty są obecne w formularzu, w takim przypadku pole należy zignorować. </li>
+          
+          <br>
           Po zweryfikowaniu wszystkich pól, należy kliknąć przycisk <b>"Wyślij kartę i przejdź do następnej"</b>, aby wysłać kartę do systemu i przejść do kolejnego dokumentu.
-          <br><br>
-          Aby przerwać proces weryfikacji, należy użyć przycisku <b>"Zakończ sprawdzanie"</b>.
-          <br><br>
+          <br>
+          Aby przerwać proces weryfikacji, należy użyć przycisku <b>"X - Zakończ sprawdzanie"</b>.
+          <br>
           <b>Uwaga:</b> Użycie przycisku "Zakończ sprawdzanie" spowoduje, że aktualnie weryfikowana karta nie zostanie zapisana w systemie.
         </p>
       </div>
