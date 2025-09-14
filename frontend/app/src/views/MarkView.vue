@@ -255,7 +255,7 @@ export default {
 </script>
 <template>
   <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
-    <div class="container-fluid d-flex flex-column justify-content-center align-items-center h-100 px-3">
+    <div class="container-fluid d-flex flex-column align-items-center h-100 px-3">
 
       <split-pane 
         split="vertical" 
@@ -364,13 +364,13 @@ export default {
 
 <style scoped>
 .split-pane-main {
-  height: 75vh;
+  height: calc(100vh - 80px);
   min-height: 400px;
   width: 100%;
 }
 
 .card {
-  height: 75vh;
+  height: calc(100vh - 80px);
 }
 
 .form-content-scrollable {
@@ -382,14 +382,14 @@ export default {
 }
 
 .container-img {
-  height: 75vh;
+  height: calc(100vh - 80px);
   cursor: zoom-in;
 }
 
 .card-image-clickable {
   max-width: 100%;
   max-height: 100%;
-  height: 75vh;
+  height: calc(100vh - 80px);
   object-fit: contain;
   cursor: zoom-in;
   border: 2px solid #eee;
@@ -435,8 +435,11 @@ export default {
     min-height: 300px;
   }
   .container-img, .card {
-    height: 40vh;
+    height: calc(50vh - 30px);
     min-height: 200px;
+  }
+  .card-image-clickable {
+    height: calc(50vh - 30px);
   }
   .modal-image {
     max-width: 95vw;
