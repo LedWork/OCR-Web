@@ -522,6 +522,8 @@ export default {
       <div v-if="showTooltip" class="help-tooltip">
         <p class="mb-0">
           <small>
+            Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset
+            <br><br>
             Jeśli masz pytania lub problemy, skontaktuj się z nami pod adresem: 
             <a href="mailto:skany.hdkpck@pck.pomorze.pl" class="text-decoration-none">
               skany.hdkpck@pck.pomorze.pl
@@ -555,8 +557,10 @@ export default {
 }
 
 .submit-button {
-  padding: 0.5rem 1rem; /* Reduced padding for smaller height */
-  font-size: 1rem; /* Slightly smaller font size */
+  padding: 0.75rem 1.5rem; /* Increased padding for better accessibility */
+  font-size: 1.1rem; /* Larger font size for better readability */
+  font-weight: 600; /* Bold text for better visibility */
+  color: #fff; /* Ensure high contrast */
 }
 
 .container-img {
@@ -606,17 +610,18 @@ export default {
 }
 
 .zoom-indicator {
-  font-size: 14px;
-  font-weight: bold;
-  color: #333;
-  min-width: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #2c3e50;
+  min-width: 60px;
   text-align: center;
 }
 
 .zoom-reset-btn {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 .card-image-clickable:hover {
   box-shadow: 0 0 10px #2196f3;
@@ -665,13 +670,13 @@ export default {
 
 .finish-button,
 .help-button {
-  width: 50px;
-  height: 50px;
+  width: 55px;
+  height: 55px;
   border-radius: 50%;
   color: white;
   border: none;
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 22px;
+  font-weight: 700;
   cursor: pointer;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
@@ -703,16 +708,19 @@ export default {
 .finish-tooltip,
 .help-tooltip {
   position: absolute;
-  bottom: 60px;
+  bottom: 65px;
   left: 0;
   background-color: #f8f9fa;
   border: 1px solid #dee2e6;
   border-radius: 8px;
-  padding: 15px;
-  min-width: 300px;
-  max-width: 400px;
+  padding: 18px;
+  min-width: 320px;
+  max-width: 420px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   z-index: 10000;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #2c3e50;
 }
 
 .finish-tooltip::after,
@@ -748,10 +756,20 @@ button[tabindex="-1"]:focus {
 
 /* Ensure form inputs have clear focus styles */
 input[type="text"]:focus {
-  outline: 2px solid #007bff;
-  outline-offset: 2px;
+  outline: 3px solid #007bff;
+  outline-offset: 3px;
   border-color: #007bff;
-  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  box-shadow: 0 0 0 0.3rem rgba(0, 123, 255, 0.3);
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+/* General form styling for better accessibility */
+input[type="text"] {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #2c3e50;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) and (orientation: portrait) {
@@ -766,6 +784,34 @@ input[type="text"]:focus {
   }
   .card-image-clickable {
     height: calc(50vh - 30px);
+  }
+  
+  .submit-button {
+    font-size: 1rem;
+    padding: 0.6rem 1.2rem;
+  }
+  
+  .finish-button,
+  .help-button {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+  }
+  
+  .finish-tooltip,
+  .help-tooltip {
+    font-size: 0.9rem;
+    min-width: 280px;
+    max-width: 350px;
+    padding: 15px;
+  }
+  
+  input[type="text"] {
+    font-size: 0.95rem;
+  }
+  
+  input[type="text"]:focus {
+    font-size: 1rem;
   }
 }
 </style>

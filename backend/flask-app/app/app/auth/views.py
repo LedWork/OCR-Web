@@ -44,16 +44,19 @@ def auth_login():
     if data is None or 'login' not in data or 'password' not in data:
         return jsonify({"message": "Login lub hasło nieprawidłowe."}), 401
 
-    if user_exists(data['login']) is False:
+    # Normalize email to lowercase for case-insensitive login
+    login_email = data['login'].lower()
+
+    if user_exists(login_email) is False:
         return jsonify({"message": "Login lub hasło nieprawidłowe."}), 401
 
     # Check if user is revoked
-    if is_user_revoked(data['login']):
+    if is_user_revoked(login_email):
         return jsonify({"message": "Konto zostało odwołane. Skontaktuj się z administratorem."}), 401
 
-    if password_correct(data['login'], data['password']):
-        session['user'] = data['login']
-        if has_password_expired(data['login']):
+    if password_correct(login_email, data['password']):
+        session['user'] = login_email
+        if has_password_expired(login_email):
             web_server_url = os.getenv('WEB_SERVER_URL', 'https://ocr-pck.eu')
             return jsonify({"message": f"Hasło wygasło, wprowadź email na stronie {web_server_url} aby otrzymać nowe"}), 401
 
@@ -73,10 +76,13 @@ def send_password():
     if data is None or 'login' not in data:
         return jsonify({"message": "Email incorrect."}), 401
 
-    if user_exists(data['login']) is False:
+    # Normalize email to lowercase for case-insensitive lookup
+    login_email = data['login'].lower()
+
+    if user_exists(login_email) is False:
         return jsonify({"message": "User not registered."}), 401
 
-    if generate_user_password(data['login']):
+    if generate_user_password(login_email):
         return jsonify({"message": "Password sent on provided email."}), 200
     else:
         return jsonify({"message": "There was a problem with sending password."}), 401

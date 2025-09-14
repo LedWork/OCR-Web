@@ -8,7 +8,8 @@ from flask import current_app
 def user_exists(login):
     db = get_db()
     collection = db['users']
-    user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    user = collection.find_one({"login": login.lower()})
     if user is not None:
         return True
     else:
@@ -18,7 +19,8 @@ def user_exists(login):
 def password_correct(login, password):
     db = get_db()
     collection = db['users']
-    user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    user = collection.find_one({"login": login.lower()})
 
     if user is None:
         return False
@@ -31,7 +33,8 @@ def password_correct(login, password):
 def has_password_expired(login):
     db = get_db()
     collection = db['users']
-    user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    user = collection.find_one({"login": login.lower()})
 
     if user is None:
         return False
@@ -49,8 +52,9 @@ def has_password_expired(login):
     validity_timedelta = datetime.timedelta(minutes=password_validity_minutes)
 
     if time_difference >= validity_timedelta:
+        # Normalize email to lowercase for update as well
         collection.update_one(
-            {"login": login},
+            {"login": login.lower()},
             {"$unset": {"password": ""}})
         return True
     else:
@@ -59,7 +63,8 @@ def has_password_expired(login):
 def is_admin(login):
     db = get_db()
     collection = db['users']
-    user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    user = collection.find_one({"login": login.lower()})
 
     if user is None:
         return False
@@ -70,5 +75,6 @@ def is_user_revoked(login):
     """Check if a user is revoked"""
     db = get_db()
     collection = db['users']
-    user = collection.find_one({"login": login})
+    # Normalize email to lowercase for case-insensitive lookup
+    user = collection.find_one({"login": login.lower()})
     return user is not None and user.get('is_revoked', False)
