@@ -13,9 +13,17 @@
     <div :class="contentContainerClass">
       <RouterView />
     </div>
-    <!-- Footer with contact email - only shown when authenticated -->
-    <footer v-if="globalState.isAuthenticated" class="footer">
-      <div class="container-fluid text-center">
+    <!-- Help button with contact info tooltip - only shown when authenticated -->
+    <div v-if="globalState.isAuthenticated" class="help-button-container">
+      <button 
+        class="help-button" 
+        @mouseenter="showTooltip = true" 
+        @mouseleave="showTooltip = false"
+        aria-label="Pomoc i kontakt"
+      >
+        ?
+      </button>
+      <div v-if="showTooltip" class="help-tooltip">
         <p class="mb-0">
           <small>
             Jeśli masz pytania lub problemy, skontaktuj się z nami pod adresem: 
@@ -25,7 +33,7 @@
           </small>
         </p>
       </div>
-    </footer>
+    </div>
   </div>
 </template>
 
@@ -36,7 +44,8 @@ export default {
   name: 'App',
   data() {
     return {
-      globalState
+      globalState,
+      showTooltip: false
     }
   },
   computed: {
@@ -68,36 +77,80 @@ html, body {
 
 .content-container {
   padding-top: 80px; /* Increased padding to account for fixed navbar */
-  min-height: calc(100vh - 140px); /* Account for navbar and footer */
-  padding-bottom: 60px; /* Add space for footer */
+  min-height: calc(100vh - 80px); /* Account for navbar only */
+  padding-bottom: 20px; /* Small bottom padding */
 }
 
 .content-container-no-navbar {
   padding-top: 0; /* No padding when navbar is hidden */
   min-height: 100vh; /* Use full viewport height */
-  padding-bottom: 0; /* No bottom padding to use full space */
+  padding-bottom: 20px; /* Small bottom padding */
 }
 
 .container-fluid {
   max-width: 100%;
 }
 
-.footer {
-  background-color: #f8f9fa;
-  border-top: 1px solid #dee2e6;
-  padding: 10px 0;
+.help-button-container {
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
+  bottom: 20px;
+  left: 20px;
   z-index: 1000;
 }
 
-.footer a {
-  color: #007bff;
+.help-button {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.footer a:hover {
+.help-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.help-tooltip {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  min-width: 300px;
+  max-width: 400px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+}
+
+.help-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 20px;
+  border: 8px solid transparent;
+  border-top-color: #f8f9fa;
+}
+
+.help-tooltip a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.help-tooltip a:hover {
   color: #0056b3;
+  text-decoration: underline;
 }
 </style>
