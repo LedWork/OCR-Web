@@ -9,6 +9,7 @@ import {
   loadImage,
   parseGtParse
 } from '@/scripts/utils.js'
+import { globalState } from '@/scripts/store.js'
 
 export default {
   components: {
@@ -17,6 +18,7 @@ export default {
   },
   data() {
     return {
+      globalState,
       loading: true,
       image: null,
       cardData: null,
@@ -361,8 +363,8 @@ export default {
     </div>
   </div>
   
-  <!-- Action buttons - only shown when authenticated -->
-  <div class="action-buttons-container">
+  <!-- Action buttons - only shown when authenticated and on marking page -->
+  <div v-if="globalState.isAuthenticated && $route.name === 'marking'" class="action-buttons-container">
     <!-- Finish checking button -->
     <div class="finish-button-wrapper">
       <button 
