@@ -277,20 +277,25 @@ export default {
           </div>
         </template>
         <template #paneR>
-          <div class="card border-light-subtle p-3 d-flex flex-column align-items-center overflow-auto h-100 w-100">
-            <form @submit.prevent="handleSubmit" class="w-100">
-              <DynamicForm :value="jsonData" @update:value="updateJsonData" />
-              <div class="text-center mt-3">
-                <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard">
-                  <span v-if="loading">ŁADOWANIE...</span>
-                  <span v-else-if="!canRequestCard">
-                    WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
-                    <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
-                  </span>
-                  <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
-                </button>
-              </div>
-            </form>
+          <div class="card border-light-subtle p-3 d-flex flex-column h-100 w-100">
+            <!-- Scrollable form content -->
+            <div class="form-content-scrollable flex-grow-1 overflow-auto">
+              <form @submit.prevent="handleSubmit" class="w-100">
+                <DynamicForm :value="jsonData" @update:value="updateJsonData" />
+              </form>
+            </div>
+            
+            <!-- Fixed button at bottom -->
+            <div class="button-container mt-3">
+              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit">
+                <span v-if="loading">ŁADOWANIE...</span>
+                <span v-else-if="!canRequestCard">
+                  WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
+                  <span class="ms-2 badge bg-warning text-dark">{{ countdown }}s</span>
+                </span>
+                <span v-else>WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ</span>
+              </button>
+            </div>
           </div>
         </template>
       </split-pane>
@@ -366,7 +371,14 @@ export default {
 
 .card {
   height: 75vh;
-  overflow-y: auto;
+}
+
+.form-content-scrollable {
+  min-height: 0; /* Important for flexbox scrolling */
+}
+
+.button-container {
+  flex-shrink: 0; /* Prevent button from shrinking */
 }
 
 .container-img {
