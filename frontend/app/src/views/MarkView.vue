@@ -24,7 +24,6 @@ export default {
       cardData: null,
       jsonData: {},
       imageCode: '',
-      showImageModal: false,
       splitPercent: 50, // Default split percentage
       isRequestingCard: false, // Prevent multiple simultaneous card requests
       lastCardRequestTime: null, // Track when we last requested a card
@@ -33,6 +32,14 @@ export default {
       isRateLimited: false, // Track if we're rate limited vs no cards available
       showTooltip: false,
       showFinishTooltip: false,
+      // Zoom functionality
+      zoomLevel: 1,
+      zoomMin: 0.5,
+      zoomMax: 3,
+      zoomStep: 0.1,
+      imagePosition: { x: 0, y: 0 },
+      isDragging: false,
+      dragStart: { x: 0, y: 0 },
     }
   },
   computed: {
@@ -199,12 +206,6 @@ export default {
     goToThanks() {
       this.$router.push({name: 'thanks'})
     },
-    openImageModal() {
-      this.showImageModal = true;
-    },
-    closeImageModal() {
-      this.showImageModal = false;
-    },
     handleSplitChange(percent) {
       this.splitPercent = percent;
       // Save to session storage
@@ -246,6 +247,65 @@ export default {
           }
         }, 100);
       });
+    },
+    
+    // Zoom functionality methods
+    handleWheel(event) {
+      event.preventDefault();
+      
+      const delta = event.deltaY > 0 ? -this.zoomStep : this.zoomStep;
+      const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
+      
+      if (newZoom !== this.zoomLevel) {
+        // Calculate zoom point relative to image center
+        const rect = event.currentTarget.getBoundingClientRect();
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        
+        // Update zoom level
+        this.zoomLevel = newZoom;
+        
+        // Adjust position to zoom towards mouse cursor
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        
+        const zoomFactor = newZoom / (this.zoomLevel - delta);
+        this.imagePosition.x = centerX - (centerX - this.imagePosition.x) * zoomFactor - (mouseX - centerX) * (zoomFactor - 1);
+        this.imagePosition.y = centerY - (centerY - this.imagePosition.y) * zoomFactor - (mouseY - centerY) * (zoomFactor - 1);
+      }
+    },
+    
+    handleMouseDown(event) {
+      if (this.zoomLevel > 1) {
+        this.isDragging = true;
+        this.dragStart = { x: event.clientX - this.imagePosition.x, y: event.clientY - this.imagePosition.y };
+        event.preventDefault();
+      }
+    },
+    
+    handleMouseMove(event) {
+      if (this.isDragging && this.zoomLevel > 1) {
+        this.imagePosition.x = event.clientX - this.dragStart.x;
+        this.imagePosition.y = event.clientY - this.dragStart.y;
+        event.preventDefault();
+      }
+    },
+    
+    handleMouseUp() {
+      this.isDragging = false;
+    },
+    
+    resetZoom() {
+      this.zoomLevel = 1;
+      this.imagePosition = { x: 0, y: 0 };
+    },
+    
+    handleKeyDown(event) {
+      // Reset zoom with 'R' key
+      if (event.key === 'r' || event.key === 'R') {
+        this.resetZoom();
+        event.preventDefault();
+      }
     }
   },
   async mounted() {
@@ -260,6 +320,11 @@ export default {
         // Focus on first form field after initial load
         this.focusFirstFormField();
       }
+      
+      // Add event listeners for zoom functionality
+      document.addEventListener('mousemove', this.handleMouseMove);
+      document.addEventListener('mouseup', this.handleMouseUp);
+      document.addEventListener('keydown', this.handleKeyDown);
     } catch (error) {
       console.error('Error in mounted:', error)
     } finally {
@@ -270,6 +335,11 @@ export default {
   beforeUnmount() {
     // Clean up countdown interval when component is destroyed
     this.stopCountdown();
+    
+    // Clean up event listeners
+    document.removeEventListener('mousemove', this.handleMouseMove);
+    document.removeEventListener('mouseup', this.handleMouseUp);
+    document.removeEventListener('keydown', this.handleKeyDown);
   },
   
 
@@ -277,6 +347,11 @@ export default {
 </script>
 <template>
   <div id="main" class="content-wrapper d-flex flex-column flex-grow-1 pt-2" v-if="shouldShowMainContent">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="../../public/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <div class="container-fluid d-flex flex-column align-items-center h-100 px-3">
 
       <split-pane 
@@ -288,14 +363,37 @@ export default {
         class="split-pane-main"
       >
         <template #paneL>
-          <div class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100">
+          <div 
+            class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100"
+            @wheel="handleWheel"
+            @mousedown="handleMouseDown"
+            :class="{ dragging: isDragging }"
+          >
             <img
               class="img-fluid card-image-clickable"
               :src="image"
               alt="Image"
-              @click="openImageModal"
-              title="Kliknij, aby powiększyć"
+              :style="{
+                transform: `scale(${zoomLevel}) translate(${imagePosition.x}px, ${imagePosition.y}px)`,
+                transformOrigin: 'center center',
+                transition: isDragging ? 'none' : 'transform 0.1s ease-out'
+              }"
+              :title="zoomLevel > 1 ? 'Przewiń, aby przybliżyć/oddalić | Przeciągnij, aby przesunąć | R - reset' : 'Przewiń, aby przybliżyć/oddalić'"
             />
+            
+            <!-- Zoom controls -->
+            <div v-if="zoomLevel > 1" class="zoom-controls">
+              <div class="zoom-indicator">
+                {{ Math.round(zoomLevel * 100) }}%
+              </div>
+              <button 
+                class="btn btn-sm btn-outline-secondary zoom-reset-btn"
+                @click="resetZoom"
+                title="Resetuj powiększenie (R)"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         </template>
         <template #paneR>
@@ -309,7 +407,7 @@ export default {
             
             <!-- Fixed button at bottom -->
             <div class="button-container mt-3">
-              <button type="submit" class="btn btn-lg btn-success w-100" :disabled="loading || !canRequestCard" @click="handleSubmit" tabindex="-1">
+              <button type="submit" class="btn btn-success w-100 submit-button" :disabled="loading || !canRequestCard" @click="handleSubmit" tabindex="-1">
                 <span v-if="loading">ŁADOWANIE...</span>
                 <span v-else-if="!canRequestCard">
                   WYŚLIJ KARTĘ I PRZEJDŹ DO NASTĘPNEJ
@@ -322,18 +420,16 @@ export default {
         </template>
       </split-pane>
 
-      <!-- Modal for image zoom -->
-      <div v-if="showImageModal" class="modal-backdrop-custom" @click.self="closeImageModal">
-        <div class="modal-dialog-custom">
-          <img :src="image" alt="Zoomed Image" class="modal-image" />
-          <button class="btn btn-secondary mt-2" @click="closeImageModal">Zamknij</button>
-        </div>
-      </div>
     </div>
   </div>
   
   <!-- Loading indicator -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="loading && !shouldShowRateLimitLoading">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <div class="text-center">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Ładowanie...</span>
@@ -344,6 +440,11 @@ export default {
   
   <!-- No cards available or rate limit reached -->
   <div class="container d-flex flex-column justify-content-center align-items-center mt-5" v-if="!loading && !cardData">
+    <!-- PCK Logo in top left corner -->
+    <div class="pck-logo-container">
+      <img src="/pck-logo.png" alt="Polski Czerwony Krzyż" class="pck-logo" />
+    </div>
+    
     <!-- Rate limit message -->
     <div class="text-center" v-if="isRateLimited">
       <h1 class="display-4 text-center mb-3 mt-5">Zbyt szybkie żądania</h1>
@@ -453,9 +554,16 @@ export default {
   flex-shrink: 0; /* Prevent button from shrinking */
 }
 
+.submit-button {
+  padding: 0.5rem 1rem; /* Reduced padding for smaller height */
+  font-size: 1rem; /* Slightly smaller font size */
+}
+
 .container-img {
   height: 100vh;
   cursor: zoom-in;
+  overflow: hidden;
+  position: relative;
 }
 
 .card-image-clickable {
@@ -467,37 +575,76 @@ export default {
   border: 2px solid #eee;
   border-radius: 8px;
   transition: box-shadow 0.2s;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.container-img:active .card-image-clickable {
+  cursor: grabbing;
+}
+
+.container-img.dragging .card-image-clickable {
+  cursor: grabbing;
+}
+
+/* Zoom controls */
+.zoom-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.zoom-indicator {
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+  min-width: 50px;
+  text-align: center;
+}
+
+.zoom-reset-btn {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
 }
 .card-image-clickable:hover {
   box-shadow: 0 0 10px #2196f3;
 }
 
-/* Modal styles */
-.modal-backdrop-custom {
+
+/* PCK Logo styles */
+.pck-logo-container {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
 }
-.modal-dialog-custom {
-  background: #fff;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.3);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 90vw;
-  max-height: 90vh;
+
+.pck-logo {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid #dc3545;
+  background-color: white;
+  padding: 5px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
-.modal-image {
-  max-width: 80vw;
-  max-height: 70vh;
-  border-radius: 8px;
-  margin-bottom: 10px;
+
+.pck-logo:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 }
 
 /* Action buttons styles */
@@ -619,10 +766,6 @@ input[type="text"]:focus {
   }
   .card-image-clickable {
     height: calc(50vh - 30px);
-  }
-  .modal-image {
-    max-width: 95vw;
-    max-height: 60vh;
   }
 }
 </style>
