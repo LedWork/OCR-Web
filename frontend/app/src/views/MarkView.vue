@@ -257,21 +257,28 @@ export default {
       const newZoom = Math.max(this.zoomMin, Math.min(this.zoomMax, this.zoomLevel + delta));
       
       if (newZoom !== this.zoomLevel) {
-        // Calculate zoom point relative to image center
         const rect = event.currentTarget.getBoundingClientRect();
-        const centerX = rect.width / 2;
-        const centerY = rect.height / 2;
+        const containerCenterX = rect.width / 2;
+        const containerCenterY = rect.height / 2;
+        
+        // Get mouse position relative to the container
+        const mouseX = event.clientX - rect.left;
+        const mouseY = event.clientY - rect.top;
+        
+        // Calculate the zoom factor
+        const zoomFactor = newZoom / this.zoomLevel;
+        
+        // Calculate the point on the image that the mouse is pointing to
+        // This is the point that should remain under the mouse after zoom
+        const imagePointX = (mouseX - containerCenterX - this.imagePosition.x) / this.zoomLevel;
+        const imagePointY = (mouseY - containerCenterY - this.imagePosition.y) / this.zoomLevel;
         
         // Update zoom level
         this.zoomLevel = newZoom;
         
-        // Adjust position to zoom towards mouse cursor
-        const mouseX = event.clientX - rect.left;
-        const mouseY = event.clientY - rect.top;
-        
-        const zoomFactor = newZoom / (this.zoomLevel - delta);
-        this.imagePosition.x = centerX - (centerX - this.imagePosition.x) * zoomFactor - (mouseX - centerX) * (zoomFactor - 1);
-        this.imagePosition.y = centerY - (centerY - this.imagePosition.y) * zoomFactor - (mouseY - centerY) * (zoomFactor - 1);
+        // Calculate new position so the same image point stays under the mouse
+        this.imagePosition.x = mouseX - containerCenterX - imagePointX * this.zoomLevel;
+        this.imagePosition.y = mouseY - containerCenterY - imagePointY * this.zoomLevel;
       }
     },
     
