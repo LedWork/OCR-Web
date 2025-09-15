@@ -126,7 +126,6 @@ export default {
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
               @keydown="handleKeyDown($event, k)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -148,7 +147,6 @@ export default {
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
               @keydown="handleKeyDown($event, k)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -176,7 +174,6 @@ export default {
               :value="value[block.key][k]"
               @input="updateNestedValue(block.key, { ...value[block.key], [k]: $event.target.value })"
               @keydown="handleKeyDown($event, k, true, block.key)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -196,7 +193,6 @@ export default {
           :value="value[block.key]"
           @input="updateValue(block.key, $event.target.value)"
           @keydown="handleKeyDown($event, block.key)"
-          :placeholder="block.key"
           :name="block.key"
           :readonly="readonly"
           type="text"
@@ -237,7 +233,7 @@ export default {
 }
 
 .stage-title {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 700;
   margin-bottom: 0;
   color: #333;
@@ -245,13 +241,18 @@ export default {
 
 .stage-inputs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, max-content));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 6px 12px;
   align-items: start;
   justify-content: start;
 }
 
 @media (max-width: 768px) {
+  .personal-info-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
   .stage-inputs-grid {
     grid-template-columns: 1fr;
     gap: 6px;
@@ -262,6 +263,7 @@ export default {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  width: 100%;
 }
 
 .stage-field-label {
@@ -275,9 +277,9 @@ export default {
 }
 
 .stage-input {
-  font-size: 0.85rem;
-  padding: 4px 8px;
-  height: 32px;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  height: 38px;
   border-radius: 4px;
 }
 
@@ -288,15 +290,19 @@ export default {
 }
 
 .form-control-compact {
-  width: auto;
-  min-width: 80px;
-  max-width: 120px;
+  width: 100%;
+  min-width: 100px;
+  font-size: 1rem;
+  padding: 8px 12px;
+  height: 42px;
 }
 
 .stage-input-compact {
-  width: auto;
-  min-width: 70px;
-  max-width: 110px;
+  width: 100%;
+  min-width: 90px;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  height: 38px;
 }
 
 .personal-info-block {
@@ -312,8 +318,8 @@ export default {
 }
 
 .personal-info-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px 16px;
   align-items: flex-start;
   width: 100%;
@@ -323,16 +329,15 @@ export default {
 .personal-info-field {
   display: flex;
   flex-direction: column;
-  flex: 0 0 auto;
-  min-width: 100px;
-  max-width: 120px;
+  min-width: 0;
+  width: 100%;
 }
 
 .personal-info-input {
   width: 100%;
-  font-size: 0.9rem;
-  padding: 6px 10px;
-  height: 36px;
+  font-size: 1rem;
+  padding: 8px 12px;
+  height: 42px;
   box-sizing: border-box;
 }
 
@@ -343,7 +348,7 @@ export default {
   color: #333;
   margin-bottom: 6px;
   cursor: help;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .tooltip-indicator {

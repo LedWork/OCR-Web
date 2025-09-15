@@ -301,8 +301,11 @@ export default {
     },
     
     handleKeyDown(event) {
-      // Reset zoom with 'R' key
-      if (event.key === 'r' || event.key === 'R') {
+      // Reset zoom with 'R' key only when not typing in form inputs and not using Ctrl+R
+      if ((event.key === 'r' || event.key === 'R') && 
+          !event.ctrlKey && 
+          !event.metaKey && 
+          !event.target.matches('input, textarea, select')) {
         this.resetZoom();
         event.preventDefault();
       }
@@ -364,7 +367,7 @@ export default {
       >
         <template #paneL>
           <div 
-            class="container-img text-center d-flex align-items-center justify-content-center h-100 w-100"
+            class="container-img text-center d-flex align-items-start justify-content-center h-100 w-100"
             @wheel="handleWheel"
             @mousedown="handleMouseDown"
             :class="{ dragging: isDragging }"
@@ -573,7 +576,7 @@ export default {
 .card-image-clickable {
   max-width: 100%;
   max-height: 100%;
-  height: 100vh;
+  height: auto;
   object-fit: contain;
   cursor: zoom-in;
   border: 2px solid #eee;
@@ -583,6 +586,7 @@ export default {
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
+  align-self: flex-start;
 }
 
 .container-img:active .card-image-clickable {
