@@ -126,7 +126,6 @@ export default {
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
               @keydown="handleKeyDown($event, k)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -148,7 +147,6 @@ export default {
               :value="value[k]"
               @input="updateValue(k, $event.target.value)"
               @keydown="handleKeyDown($event, k)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -176,7 +174,6 @@ export default {
               :value="value[block.key][k]"
               @input="updateNestedValue(block.key, { ...value[block.key], [k]: $event.target.value })"
               @keydown="handleKeyDown($event, k, true, block.key)"
-              :placeholder="k"
               :name="k"
               :readonly="readonly"
               type="text"
@@ -196,7 +193,6 @@ export default {
           :value="value[block.key]"
           @input="updateValue(block.key, $event.target.value)"
           @keydown="handleKeyDown($event, block.key)"
-          :placeholder="block.key"
           :name="block.key"
           :readonly="readonly"
           type="text"
@@ -237,7 +233,7 @@ export default {
 }
 
 .stage-title {
-  font-size: 0.95rem;
+  font-size: 0.8rem;
   font-weight: 700;
   margin-bottom: 0;
   color: #333;
@@ -265,7 +261,7 @@ export default {
 }
 
 .stage-field-label {
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 500;
   color: #555;
   margin-bottom: 3px;
@@ -275,9 +271,9 @@ export default {
 }
 
 .stage-input {
-  font-size: 0.85rem;
-  padding: 4px 8px;
-  height: 32px;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  height: 38px;
   border-radius: 4px;
 }
 
@@ -289,14 +285,20 @@ export default {
 
 .form-control-compact {
   width: auto;
-  min-width: 80px;
-  max-width: 120px;
+  min-width: 100px;
+  max-width: 140px;
+  font-size: 1rem;
+  padding: 8px 12px;
+  height: 42px;
 }
 
 .stage-input-compact {
   width: auto;
-  min-width: 70px;
-  max-width: 110px;
+  min-width: 90px;
+  max-width: 130px;
+  font-size: 0.95rem;
+  padding: 6px 10px;
+  height: 38px;
 }
 
 .personal-info-block {
@@ -330,9 +332,9 @@ export default {
 
 .personal-info-input {
   width: 100%;
-  font-size: 0.9rem;
-  padding: 6px 10px;
-  height: 36px;
+  font-size: 1rem;
+  padding: 8px 12px;
+  height: 42px;
   box-sizing: border-box;
 }
 
@@ -343,7 +345,7 @@ export default {
   color: #333;
   margin-bottom: 6px;
   cursor: help;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
 }
 
 .tooltip-indicator {
