@@ -301,8 +301,9 @@ export default {
     },
     
     handleKeyDown(event) {
-      // Reset zoom with 'R' key
-      if (event.key === 'r' || event.key === 'R') {
+      // Reset zoom with 'R' key only when not typing in form inputs
+      if ((event.key === 'r' || event.key === 'R') && 
+          !event.target.matches('input, textarea, select')) {
         this.resetZoom();
         event.preventDefault();
       }
