@@ -233,7 +233,7 @@ export default {
 }
 
 .stage-title {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-weight: 700;
   margin-bottom: 0;
   color: #333;
@@ -267,7 +267,7 @@ export default {
 }
 
 .stage-field-label {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: #555;
   margin-bottom: 3px;
@@ -348,7 +348,7 @@ export default {
   color: #333;
   margin-bottom: 6px;
   cursor: help;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
 }
 
 .tooltip-indicator {
