@@ -145,11 +145,11 @@ export default {
       // Calculate how much time has passed since the last request
       if (this.lastCardRequestTime) {
         const elapsed = Date.now() - this.lastCardRequestTime;
-        const remaining = Math.max(0, 16 - Math.floor(elapsed / 1000));
+        const remaining = Math.max(0, 11 - Math.floor(elapsed / 1000));
         this.countdown = remaining;
       } else {
-        // If no last request time, start from 16
-        this.countdown = 16;
+        // If no last request time, start from 11
+        this.countdown = 11;
       }
       
       this.countdownInterval = setInterval(() => {
