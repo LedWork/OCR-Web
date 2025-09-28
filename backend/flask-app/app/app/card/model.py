@@ -120,7 +120,7 @@ def increment_correct(card_id, user_id, number):
 
 
 def get_random_card(user_id):
-    """Get a random card with 'correct' less than EXPECTED_CHECKS_PER_CARD"""
+    """Get a random card that is not yet validated (correct < EXPECTED_CHECKS_PER_CARD and not admin checked)"""
     db = get_db()
     collection = db['cards']
     try:
@@ -129,7 +129,7 @@ def get_random_card(user_id):
             {
                 "$match": {
                     "correct": {"$lt": EXPECTED_CHECKS_PER_CARD},
-                    "checked_by": {"$nin": [user_id]}
+                    "checked_by": {"$nin": [user_id, "admin"]}
                 }
             },
             {
