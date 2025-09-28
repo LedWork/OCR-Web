@@ -203,8 +203,11 @@ def retrieve_all_image_codes_from_cards():
         checked_by = card.get('checked_by', [])
         current_checks = len(checked_by)
         
-        # Determine if card is fully validated or checked by admin
-        is_validated = current_checks >= EXPECTED_CHECKS_PER_CARD
+        # Get the correct field value from the database
+        correct_value = card.get('correct', 0)
+        
+        # Determine if card is fully validated based on correct field
+        is_validated = correct_value >= EXPECTED_CHECKS_PER_CARD
         is_admin_checked = 'admin' in checked_by
         
         # Determine color based on validation status
