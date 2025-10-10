@@ -6,7 +6,8 @@ from .model import (get_card_by_id,
                     get_random_card)
 
 from app.auth.decorators import login_required
-from app.core.utils import parse_json
+from app.auth.model import is_admin
+from app.core.utils import parse_json, EXPECTED_CHECKS_PER_CARD
 from app.core.db import get_db
 from bson import ObjectId
 
@@ -54,7 +55,9 @@ def receive_correct_card():
 
     if update_card(card_id, data):
         if should_increment:
-            increment_correct(card_id, user_id, 1)
+            # Determine increment value based on admin status
+            increment_value = EXPECTED_CHECKS_PER_CARD + 1 if is_admin(user_id) else 1
+            increment_correct(card_id, user_id, increment_value)
             return jsonify({"message": "Card marked as correct and updated."}), 200
         else:
             # Add user to checked_by but don't increment correct field
